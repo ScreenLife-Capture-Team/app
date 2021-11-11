@@ -28,10 +28,6 @@ public class UploadScheduler extends BroadcastReceiver {
 
         System.out.println("Resetting alarms!");
         alarm.cancel(this.alarmIntent);
-        setAlarm(22, 30);
-        setAlarm(23, 00);
-        setAlarm(1, 45);
-        setAlarm(4, 30);
     }
 
     private void setAlarm(int hour, int minute) {
