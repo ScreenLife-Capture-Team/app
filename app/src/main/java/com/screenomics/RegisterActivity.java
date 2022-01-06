@@ -75,7 +75,7 @@ public class RegisterActivity extends AppCompatActivity {
     private void showDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Manual Input");
-        builder.setMessage("Please scan the QR code using a third-party QR code scanner, and paste the result below.");
+        builder.setMessage("Please scan the QR code using your phone's camera or third-party QR code scanner, copy the code, and paste the result below.");
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         builder.setView(input);
