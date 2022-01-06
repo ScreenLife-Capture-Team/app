@@ -1,15 +1,19 @@
 package com.screenomics;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
+import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -37,6 +41,7 @@ public class RegisterActivity extends AppCompatActivity {
     private String key;
     private String hash;
     private PreviewView previewView;
+    private Button errorButton;
     private Button continueButton;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
 
@@ -46,6 +51,13 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.register);
 
         previewView = findViewById(R.id.activity_main_previewView);
+        errorButton = findViewById(R.id.errorButton);
+        errorButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showDialog();
+            }
+        });
         continueButton = findViewById(R.id.continueButton);
         continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -59,6 +71,31 @@ public class RegisterActivity extends AppCompatActivity {
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         requestCamera();
     }
+
+    private void showDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Manual Input");
+        builder.setMessage("Please scan the QR code using a third-party QR code scanner, and paste the result below.");
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        builder.setView(input);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String m_Text = input.getText().toString();
+                setQR(m_Text);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
 
     private void requestCamera() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -115,18 +152,7 @@ public class RegisterActivity extends AppCompatActivity {
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer(new QRCodeFoundListener() {
             @Override
             public void onQRCodeFound(String _qrCode) {
-                if (_qrCode.length() == 64) {
-                    key = _qrCode;
-                    try {
-                        System.out.println("getSHA " + getSHA(key));
-                        System.out.println("hash " + toHexString(getSHA(key)));
-                        hash = toHexString(getSHA(key));
-                        continueButton.setText("Verification code: " + hash.substring(0, 4));
-                        continueButton.setEnabled(true);
-                    } catch (NoSuchAlgorithmException e) {
-                        e.printStackTrace();
-                    }
-                }
+                setQR(_qrCode);
             }
 
             @Override
@@ -134,6 +160,21 @@ public class RegisterActivity extends AppCompatActivity {
         }));
 
         cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
+    }
+
+    private void setQR(String _qrCode) {
+        if (_qrCode.length() == 64) {
+            key = _qrCode;
+            try {
+                System.out.println("getSHA " + getSHA(key));
+                System.out.println("hash " + toHexString(getSHA(key)));
+                hash = toHexString(getSHA(key));
+                continueButton.setText("Verification code: " + hash.substring(0, 4));
+                continueButton.setEnabled(true);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void commitSharedPreferences() {
