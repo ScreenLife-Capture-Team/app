@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
 
                 AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
                 alertDialog.setTitle("Alert");
-                alertDialog.setMessage("Upload image date while not on WiFi?");
+                alertDialog.setMessage("Upload image data while not on WiFi?");
                 alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Upload",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
