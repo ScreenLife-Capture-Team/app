@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
                 editor.commit();
                 stopService();
                 captureState.setText(getResources().getString(R.string.capture_state_off));
-                captureState.setTextColor(getResources().getColor(R.color.white_isabelline));
+                captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
             }
         });
 
@@ -208,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
         File f_encrypt = new File(getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + File.separator + "encrypt");
         if (!f_image.exists()) f_image.mkdir();
         if (!f_encrypt.exists()) f_encrypt.mkdir();
+        Log.i(TAG, "f_image: " + f_image.getAbsolutePath());
     }
 
     private void startMediaProjectionRequest() {
