@@ -10,7 +10,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
@@ -29,6 +31,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -52,6 +55,8 @@ public class CaptureService extends Service {
     private static final int DISPLAY_WIDTH = 720;
     private static final int DISPLAY_HEIGHT = 1280;
     private Runnable captureInterval;
+    private Runnable insertStartImage;
+    private Runnable insertPauseImage;
     private Handler mHandler = new Handler();
     public static byte[] key;
     private static ByteBuffer buffer;
@@ -126,12 +131,15 @@ public class CaptureService extends Service {
     public void onCreate() {
         super.onCreate();
 
+
+
         mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         mKeyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
         captureInterval = new Runnable() {
             @Override
             public void run() {
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
+//                TODO what's this
                 if (!capture) return;
                 if (buffer != null && !mKeyguardManager.isKeyguardLocked()) {
                     Bitmap bitmap = Bitmap.createBitmap(DISPLAY_WIDTH + rowPadding / pixelStride, DISPLAY_HEIGHT, Bitmap.Config.ARGB_8888);
@@ -142,6 +150,34 @@ public class CaptureService extends Service {
                 mHandler.postDelayed(captureInterval, 5000);
             }
         };
+
+        // To insert a 'start capture' image
+        insertStartImage = new Runnable() {
+            @Override
+            public void run() {
+                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
+//                if (!capture) return;
+                InputStream is = getResources().openRawResource(R.raw.resumerecord);
+                Bitmap bitmap = BitmapFactory.decodeStream(is);
+                encryptImage(bitmap);
+
+            }
+        };
+
+        insertPauseImage = new Runnable() {
+            @Override
+            public void run() {
+                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
+//                if (!capture) return;
+                InputStream is = getResources().openRawResource(R.raw.pauserecord);
+                Bitmap bitmap = BitmapFactory.decodeStream(is);
+                encryptImage(bitmap);
+
+            }
+        };
+
+
+
     }
 
 
@@ -170,6 +206,7 @@ public class CaptureService extends Service {
         mMediaProjection.registerCallback(mMediaProjectionCallback, null);
 
         createVirtualDisplay();
+
         startCapturing();
         return START_REDELIVER_INTENT;
     }
@@ -178,6 +215,8 @@ public class CaptureService extends Service {
         try {
             buffer = null;
             capture = true;
+            // TODO: send a 'start capture' image
+            mHandler.post(insertStartImage);
             mHandler.post(captureInterval);
         } catch (Exception e) {
             e.printStackTrace();
@@ -193,6 +232,8 @@ public class CaptureService extends Service {
     }
 
     private void stopCapturing() {
+        // TODO: send a 'stop capture' image to storage
+        mHandler.post(insertPauseImage);
         capture = false;
         mHandler.removeCallbacksAndMessages(captureInterval);
         destroyImageReader();
