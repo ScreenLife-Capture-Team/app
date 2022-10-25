@@ -159,7 +159,7 @@ public class CaptureService extends Service {
         Notification notification = new Notification.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.dna)
                 .setContentTitle("ScreenLife Capture is running!")
-                .setContentText("If this notification disappear, please re-run it from the application!")
+                .setContentText("If this notification disappears, please re-run it from the application.")
                 .setContentIntent(pendingIntent)
                 .build();
 
