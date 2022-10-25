@@ -158,8 +158,8 @@ public class CaptureService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(this,0, notificationIntent, 0);
         Notification notification = new Notification.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.dna)
-                .setContentTitle("ScreenLife Capture is running!")
-                .setContentText("If this notification disappears, please re-run it from the application.")
+                .setContentTitle("ScreenLife Capture is currently enabled")
+                .setContentText("If this notification disappears, please re-enable it from the application.")
                 .setContentIntent(pendingIntent)
                 .build();
 
