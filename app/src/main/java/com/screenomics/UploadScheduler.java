@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.preference.PreferenceManager;
 
 import java.io.File;
@@ -23,7 +24,14 @@ public class UploadScheduler extends BroadcastReceiver {
     public UploadScheduler(Context context) {
         this.alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, UploadScheduler.class);
-        this.alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+        int intentflags;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            intentflags = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
+        }else{
+            intentflags = PendingIntent.FLAG_UPDATE_CURRENT;
+        }
+
+        this.alarmIntent = PendingIntent.getBroadcast(context, 0, intent, intentflags);
         this.context = context;
 
         System.out.println("Resetting alarms!");
@@ -62,7 +70,14 @@ public class UploadScheduler extends BroadcastReceiver {
         Logger.i(context, "ALM" + (cal.getTimeInMillis() - System.currentTimeMillis()) / 1000);
         AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, UploadScheduler.class);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+        int intentflags;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            intentflags = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
+        }else{
+            intentflags = PendingIntent.FLAG_UPDATE_CURRENT;
+        }
+
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, intentflags);
         alarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), alarmIntent);
     }
 

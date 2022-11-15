@@ -191,7 +191,14 @@ public class CaptureService extends Service {
 
         createNotificationChannel();
         Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,0, notificationIntent, 0);
+        int intentflags;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            intentflags = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
+        }else{
+            intentflags = PendingIntent.FLAG_UPDATE_CURRENT;
+        }
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this,0, notificationIntent, intentflags);
         Notification notification = new Notification.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.dna)
                 .setContentTitle("ScreenLife Capture is currently enabled")
@@ -271,9 +278,16 @@ public class CaptureService extends Service {
             mMediaProjection = null;
         }
         Log.i(TAG, "MediaProjection stopped");
+        int intentflags;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            intentflags = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
+        }else{
+            intentflags = PendingIntent.FLAG_UPDATE_CURRENT;
+        }
+
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, 0);
+                0, notificationIntent, intentflags);
         Notification notification = new Notification.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("ScreenLife Capture is NOT Running!")
@@ -298,7 +312,7 @@ public class CaptureService extends Service {
             NotificationChannel serviceChannel = new NotificationChannel(
                     CHANNEL_ID,
                     "Screenomics Service Channel",
-                    NotificationManager.IMPORTANCE_MAX
+                    NotificationManager.IMPORTANCE_HIGH
             );
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(serviceChannel);
