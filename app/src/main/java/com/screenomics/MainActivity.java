@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(
                 SenderWorker.class,
-                2,
+                1,
                 TimeUnit.HOURS )
                 .addTag("send_periodic")
                 .setConstraints(constraints)

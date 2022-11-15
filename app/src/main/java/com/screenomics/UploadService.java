@@ -160,6 +160,8 @@ public class UploadService extends Service {
 
         numToUpload = 0;
 
+        System.out.println("INITIAL FILELIST SIZE " + fileList.size() + "");
+
         // Split the files into batches.
         while (fileList.size() > 0 && (maxToSend == 0 || numToUpload < maxToSend)) {
             List<File> nextBatch = new LinkedList<>();
@@ -180,7 +182,7 @@ public class UploadService extends Service {
         System.out.println("TOTAL OF " + fileList.size() + " IMAGES THO");
 
         status = Status.SENDING;
-        // Send the first batch.
+        // Send the first batch.F
         sendNextBatch();
 
         return super.onStartCommand(intent, flags, startId);
@@ -207,8 +209,16 @@ public class UploadService extends Service {
 
     private Notification setNotification(String title, String content) {
         Intent notificationIntent = new Intent(this, UploadService.class);
+
+        int intentflags;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            intentflags = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
+        }else{
+            intentflags = PendingIntent.FLAG_UPDATE_CURRENT;
+        }
+
         PendingIntent pendingIntent =
-                PendingIntent.getActivity(this, 0, notificationIntent, 0);
+                PendingIntent.getActivity(this, 0, notificationIntent, intentflags);
         Notification notification =
                 new Notification.Builder(this, "uploading-channel")
                         .setContentTitle(title)
