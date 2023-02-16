@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">ScreenLife Capture</string>
+    <string name="capture_state_on">CAPTURING DATA</string>
+    <string name="capture_state_off">CURRENTLY NOT CAPTURING DATA</string>
+    <string name="app_creator">by SUTD ScreenLife Capture Team</string>
+    <string name="username_hint">Enter your name</string>
+    <string name="key_hint">Create your key</string>
+    <string name="firstlaunch_submit">Submit</string>
+    <string name="participant" />
+    <string name="participantKey" />
+    <string name="encryptedKey" />
+    <string name="title_activity_dev_tools">DevToolsActivity</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
+</resources>

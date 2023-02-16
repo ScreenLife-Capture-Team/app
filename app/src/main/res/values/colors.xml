@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="backgroundColor">#292F36</color>
+    <color name="sunset_orange">#EE6352</color>
+    <color name="white_isabelline">#EFEFEF</color>
+    <color name="light_sea_green">#1FB299</color>
+    <color name="sea_green">#27DEBF</color>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+</resources>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="10dp"
+    android:background="@color/white_isabelline"
+    android:orientation="vertical"
+    android:padding="@dimen/box_inset_layout_padding"
+    tools:context=".DevToolsActivity">
+
+    <Button
+        android:id="@+id/clearPrefs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:text="Reset Username and Password" />
+
+    <Button
+        android:id="@+id/clearImages"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Clear Images" />
+
+    <Button
+        android:id="@+id/attemptUpload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Attempt Upload in 10s" />
+
+    <Button
+        android:id="@+id/attemptUpload2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Attempt Upload in 5m" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="43dp"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/batchSizeInput"
+            android:layout_width="105dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:digits="0123456789"
+            android:inputType="number" />
+
+        <Button
+            android:id="@+id/setBatchSizeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Set Batch Size" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="43dp"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/maxSendInput"
+            android:layout_width="105dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:digits="0123456789"
+            android:inputType="number" />
+
+        <Button
+            android:id="@+id/setMaxSendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Set max num images to send" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/disableButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Disable Dev Tools" />
+</LinearLayout>
