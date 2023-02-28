@@ -1,7 +1,8 @@
 # ScreenLife Capture Android App
 
 ### Changelog
-#### v. 1.1.0, 28 Feb 2023
+#### v. 1.1.0
+#### 28 Feb 2023
 
 - Added notice screens when user intentionally pause/resume recording
 - Updated gradle for SDK 32 (Android 12), fixed issue with intent passing for android 12
