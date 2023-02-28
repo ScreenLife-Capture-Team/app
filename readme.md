@@ -1,19 +1,11 @@
 # ScreenLife Capture Android App
 
-# Dev branch notes:
-
-This branch (development) is for beta testing of new changes. Only merge with main when confirmed stable
-
 ### Changelog
-
-
-#### v. 1.1.0
+#### v. 1.1.0, 28 Feb 2023
 
 - Added notice screens when user intentionally pause/resume recording
 - Updated gradle for SDK 32 (Android 12), fixed issue with intent passing for android 12
-- Updated gradel and fixed method calls for notification and datetime utils for SDK 25 and below (Android 7 and below)
-
-
+- Updated gradle and fixed method calls for notification and datetime utils for SDK 25 and below (Android 7 and below)
 
 This repo contains the Android Application used in the ScreenLife Capture study. The application allows participants to record and upload screenshots taken every X number of seconds. The general layout of the code is explained below.
 
