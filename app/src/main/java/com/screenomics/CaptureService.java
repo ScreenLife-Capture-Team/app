@@ -79,7 +79,7 @@ public class CaptureService extends Service {
         }
     }
 
-    private void encryptImage(Bitmap bitmap) {
+    private void encryptImage(Bitmap bitmap, String descriptor) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String hash = prefs.getString("hash", "00000000").substring(0, 8);
         String keyRaw = prefs.getString("key", "");
@@ -87,7 +87,7 @@ public class CaptureService extends Service {
         FileOutputStream fos = null;
         Date date = new Date();
         String dir = getApplicationContext().getExternalFilesDir(null).getAbsolutePath();
-        String screenshot = "/" + hash + "_" + sdf.format(date) + ".png";
+        String screenshot = "/" + hash + "_" + sdf.format(date) + "_" + descriptor + ".png";
 
         try {
             fos = new FileOutputStream(dir + "/images" + screenshot);
@@ -144,7 +144,7 @@ public class CaptureService extends Service {
                 if (buffer != null && !mKeyguardManager.isKeyguardLocked()) {
                     Bitmap bitmap = Bitmap.createBitmap(DISPLAY_WIDTH + rowPadding / pixelStride, DISPLAY_HEIGHT, Bitmap.Config.ARGB_8888);
                     bitmap.copyPixelsFromBuffer(buffer);
-                    encryptImage(bitmap);
+                    encryptImage(bitmap, "");
                     buffer.rewind();
                 }
                 mHandler.postDelayed(captureInterval, 5000);
@@ -159,7 +159,7 @@ public class CaptureService extends Service {
 //                if (!capture) return;
                 InputStream is = getResources().openRawResource(R.raw.resumerecord);
                 Bitmap bitmap = BitmapFactory.decodeStream(is);
-                encryptImage(bitmap);
+                encryptImage(bitmap, "resume");
 
             }
         };
@@ -171,7 +171,7 @@ public class CaptureService extends Service {
 //                if (!capture) return;
                 InputStream is = getResources().openRawResource(R.raw.pauserecord);
                 Bitmap bitmap = BitmapFactory.decodeStream(is);
-                encryptImage(bitmap);
+                encryptImage(bitmap, "pause");
 
             }
         };

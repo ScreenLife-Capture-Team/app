@@ -10,6 +10,24 @@
 
 This repo contains the Android Application used in the ScreenLife Capture study. The application allows participants to record and upload screenshots taken every X number of seconds. The general layout of the code is explained below.
 
+## Usage guide
+
+### Installing via Android Studio (debug mode)
+
+Refer to the [official guide here](https://developer.android.com/studio/run/device) for running an app on a physical device.
+
+Summary of steps:
+
+- Ensure your Android device has USB debugging mode turned on.
+- Connect your Android device using data cable and select file transfer mode. Android Studio should automatically register your device.
+- In Android Studio, select your device from the device list on the top toolbar. Click "Run app". The app should be installed in your device.
+
+### Packaging APK for distribution
+
+
+
+## App structure
+
 ### Activities
 
 | Activity Name    | Purpose                                                      |
