@@ -199,12 +199,15 @@ public class CaptureService extends Service {
         }
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this,0, notificationIntent, intentflags);
-        Notification notification = new Notification.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.dna)
-                .setContentTitle("ScreenLife Capture is currently enabled")
-                .setContentText("If this notification disappears, please re-enable it from the application.")
-                .setContentIntent(pendingIntent)
-                .build();
+        Notification notification = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            notification = new Notification.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.dna)
+                    .setContentTitle("ScreenLife Capture is currently enabled")
+                    .setContentText("If this notification disappears, please re-enable it from the application.")
+                    .setContentIntent(pendingIntent)
+                    .build();
+        }
 
         Log.i(TAG, "Starting foreground service");
         startForeground(1, notification);
@@ -288,12 +291,15 @@ public class CaptureService extends Service {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
                 0, notificationIntent, intentflags);
-        Notification notification = new Notification.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("ScreenLife Capture is NOT Running!")
-                .setContentText("Please restart the application!")
-                .setContentIntent(pendingIntent)
-                .build();
+        Notification notification = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            notification = new Notification.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setContentTitle("ScreenLife Capture is NOT Running!")
+                    .setContentText("Please restart the application!")
+                    .setContentIntent(pendingIntent)
+                    .build();
+        }
         startForeground(1, notification);
         capture = false;
     }
