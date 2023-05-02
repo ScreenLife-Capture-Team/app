@@ -11,7 +11,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 33
         versionCode 1
-        versionName "1.1"
+        versionName "1.1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -43,4 +43,5 @@ dependencies {
     def work_version = "2.7.0"
     implementation "androidx.work:work-runtime:$work_version"
     implementation 'net.danlew:android.joda:2.10.12.2'
+    implementation 'com.google.mlkit:barcode-scanning:17.1.0'
 }

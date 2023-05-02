@@ -29,12 +29,14 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.mlkit.vision.barcode.common.Barcode;
 
 import android.util.Size;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -146,15 +148,24 @@ public class RegisterActivity extends AppCompatActivity {
 
         ImageAnalysis imageAnalysis =
                 new ImageAnalysis.Builder()
+                        // TODO: try messing with this
                         .setTargetResolution(new Size(1280, 720))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
 
-        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer(new QRCodeFoundListener() {
+//        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer(new QRCodeFoundListener() {
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzerNew(new BarcodesListener() {
+//            @Override
+//            public void onQRCodeFound(String _qrCode) {
+//                setQR(_qrCode);
+//            }
+
             @Override
-            public void onQRCodeFound(String _qrCode) {
-                setQR(_qrCode);
+            public void invoke(List<Barcode> barcodes) {
+                String scannedQRCodeText = barcodes.get(0).getRawValue();
+                setQR(scannedQRCodeText);
             }
+
 
             @Override
             public void qrCodeNotFound() { }

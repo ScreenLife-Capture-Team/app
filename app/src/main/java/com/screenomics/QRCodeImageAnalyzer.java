@@ -7,6 +7,7 @@ import androidx.camera.core.ImageProxy;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
+import com.google.zxing.MultiFormatReader;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.PlanarYUVLuminanceSource;
 import com.google.zxing.Result;
@@ -48,10 +49,11 @@ public class QRCodeImageAnalyzer implements ImageAnalysis.Analyzer {
             Log.d("QRCodeImageAnalyzer", "got the binaryBitmap");
 
             try {
-                Result result = new QRCodeMultiReader().decode(binaryBitmap);
+                Result result = new MultiFormatReader().decode(binaryBitmap);
                 Log.d("QRCodeImageAnalyzer_res", result.getText());
                 listener.onQRCodeFound(result.getText());
-            } catch (FormatException | ChecksumException | NotFoundException e) {
+//            } catch (FormatException | ChecksumException | NotFoundException e) {
+            } catch (NotFoundException e) {
 //                Log.e("QRCodeImageAnalyzer_res", String.valueOf(e));
                 listener.qrCodeNotFound();
             }
