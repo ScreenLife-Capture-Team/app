@@ -144,7 +144,7 @@ public class CaptureService extends Service {
                 if (buffer != null && !mKeyguardManager.isKeyguardLocked()) {
                     Bitmap bitmap = Bitmap.createBitmap(DISPLAY_WIDTH + rowPadding / pixelStride, DISPLAY_HEIGHT, Bitmap.Config.ARGB_8888);
                     bitmap.copyPixelsFromBuffer(buffer);
-                    encryptImage(bitmap, "");
+                    encryptImage(bitmap, "placeholder");
                     buffer.rewind();
                 }
                 mHandler.postDelayed(captureInterval, 5000);
