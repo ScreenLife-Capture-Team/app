@@ -11,6 +11,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -140,7 +141,10 @@ public class MainActivity extends AppCompatActivity {
             if (isChecked) {
                 editor.putBoolean("recordingState", true);
                 editor.apply();
+                Log.d("MainActivity", "recordingState " + String.valueOf(recordingState));
+                Log.d("MainActivity", "calling startMediaProjectionRequest");
                 startMediaProjectionRequest();
+                Log.d("MainActivity", "after startMediaProjectionRequest");
                 captureState.setText(getResources().getString(R.string.capture_state_on));
                 captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
             } else {
@@ -217,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void startMediaProjectionRequest() {
         mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        Log.d("MediaProjectionRequest", String.valueOf(mProjectionManager));
         startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE_MEDIA);
     }
 
@@ -247,12 +252,33 @@ public class MainActivity extends AppCompatActivity {
             screenCaptureIntent.putExtra("resultCode", resultCode);
             screenCaptureIntent.putExtra("intentData", data);
             screenCaptureIntent.putExtra("screenDensity", mScreenDensity);
-            startForegroundService(screenCaptureIntent);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Log.d("onActivityResult", "Starting foreground with intent: " + intentToString(screenCaptureIntent));
+                startForegroundService(screenCaptureIntent);
+            }
             startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME));
             Toast.makeText(this, "ScreenLife Capture is running!", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // for debugging purposes
+    public static String intentToString(Intent intent) {
+        if (intent == null)
+            return "";
+
+        StringBuilder stringBuilder = new StringBuilder("action: ")
+                .append(intent.getAction())
+                .append(" data: ")
+                .append(intent.getDataString())
+                .append(" extras: ")
+                ;
+        for (String key : intent.getExtras().keySet())
+            stringBuilder.append(key).append("=").append(intent.getExtras().get(key)).append(" ");
+
+        return stringBuilder.toString();
+
     }
 
     private void createAlarm(){

@@ -1,5 +1,6 @@
 package com.screenomics;
 
+import android.annotation.SuppressLint;
 import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -67,10 +68,13 @@ public class CaptureService extends Service {
     private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            Image image = reader.acquireLatestImage();
+            Log.d("onImageAvailable", "triggering onImageAvailable!");
+            Image image = mImageReader.acquireLatestImage();
+            Log.d("onImageAvailable", "got image: " + image);
             if (image != null) {
                 Image.Plane[] planes = image.getPlanes();
                 buffer = planes[0].getBuffer();
+                Log.d("buffervalue", "added in onImageAvailable " + buffer);
                 pixelStride = planes[0].getPixelStride();
                 int rowStride = planes[0].getRowStride();
                 rowPadding = rowStride - pixelStride * DISPLAY_WIDTH;
@@ -131,21 +135,25 @@ public class CaptureService extends Service {
     public void onCreate() {
         super.onCreate();
 
-
-
         mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         mKeyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
         captureInterval = new Runnable() {
             @Override
             public void run() {
+                Log.d("captureInterval", "starting captureInterval!");
+                Log.d("captureInterval", "is mImageReader still here? " + mImageReader);
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
 //                TODO what's this
+                // Log.d("captureInterval", "capture? " + String.valueOf(capture));
                 if (!capture) return;
+                Log.d("buffervalue", "checking value from captureInverval " + buffer);
                 if (buffer != null && !mKeyguardManager.isKeyguardLocked()) {
                     Bitmap bitmap = Bitmap.createBitmap(DISPLAY_WIDTH + rowPadding / pixelStride, DISPLAY_HEIGHT, Bitmap.Config.ARGB_8888);
                     bitmap.copyPixelsFromBuffer(buffer);
+                    Log.d("captureInterval", "sending screenshot image for encrypt");
                     encryptImage(bitmap, "placeholder");
                     buffer.rewind();
+                    Log.d("buffervalue", "rewinded in captureInterval " + buffer);
                 }
                 mHandler.postDelayed(captureInterval, 5000);
             }
@@ -155,10 +163,12 @@ public class CaptureService extends Service {
         insertStartImage = new Runnable() {
             @Override
             public void run() {
+                Log.d("insertStartImage", "starting insertStartImage!");
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
 //                if (!capture) return;
                 InputStream is = getResources().openRawResource(R.raw.resumerecord);
                 Bitmap bitmap = BitmapFactory.decodeStream(is);
+                Log.d("insertStartImage", "sending start image for encrypt");
                 encryptImage(bitmap, "resume");
 
             }
@@ -183,6 +193,7 @@ public class CaptureService extends Service {
 
     @Override
     public int onStartCommand(Intent receivedIntent, int flags, int startId) {
+        Log.d("onStartCommand", "receivedIntent: " + receivedIntent);
         if (receivedIntent != null) {
             resultCode = receivedIntent.getIntExtra("resultCode", -1);
             intent = receivedIntent.getParcelableExtra("intentData");
@@ -209,13 +220,20 @@ public class CaptureService extends Service {
                     .build();
         }
 
+        Log.d("onStartCommand", "sent notification " + notification);
+
         Log.i(TAG, "Starting foreground service");
         startForeground(1, notification);
         mMediaProjection = mProjectionManager.getMediaProjection(resultCode, intent);
         mMediaProjectionCallback = new MediaProjectionCallback();
         mMediaProjection.registerCallback(mMediaProjectionCallback, null);
 
+        Log.d("onStartCommand", "created mMediaProjection " + mMediaProjection);
+
+
+
         createVirtualDisplay();
+        Log.d("onStartCommand", "created virtualdisplay");
 
         startCapturing();
         return START_REDELIVER_INTENT;
@@ -223,28 +241,47 @@ public class CaptureService extends Service {
 
     private void startCapturing() {
         try {
+            Log.d("startCapturing", "starting startCapturing! Buffer value: " + buffer);
             buffer = null;
+            Log.d("buffervalue", "cleared in startCapturing " + buffer);
             capture = true;
             // TODO: send a 'start capture' image
+            Log.d("CaptureService", "inserting start image runnable");
             mHandler.post(insertStartImage);
+//            Log.d("CaptureService", "removing start image runnable");
+//            mHandler.removeCallbacksAndMessages(insertStartImage);
+            Log.d("CaptureService", "inserting captureInterval runnable");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                Log.d("CaptureService", "double check status: " + mHandler.hasCallbacks(insertStartImage));
+            }
             mHandler.post(captureInterval);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    @SuppressLint("WrongConstant")
     private void createVirtualDisplay() {
+        Log.d("createVirtualDisplay", "mMediaProjection " + mMediaProjection);
         if (mMediaProjection != null) {
-            mImageReader = ImageReader.newInstance(DISPLAY_WIDTH, DISPLAY_HEIGHT, PixelFormat.RGBA_8888, 2);
+            Log.d("createVirtualDisplay", "before create mImageReader " + mImageReader);
+            mImageReader = ImageReader.newInstance(DISPLAY_WIDTH, DISPLAY_HEIGHT, PixelFormat.RGBA_8888, 5);
+            Log.d("createVirtualDisplay", "created mImageReader " + mImageReader);
             mVirtualDisplay = mMediaProjection.createVirtualDisplay(TAG, DISPLAY_WIDTH, DISPLAY_HEIGHT, screenDensity, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mImageReader.getSurface(), null, null);
-            mImageReader.setOnImageAvailableListener(new ImageAvailableListener(), null);
+            Log.d("createVirtualDisplay", "created mVirtualDisplay " + mVirtualDisplay);
+            mImageReader.setOnImageAvailableListener(new ImageAvailableListener(), mHandler);
+            Log.d("createVirtualDisplay", "mImageReader set listener " + mImageReader);
         }
     }
 
     private void stopCapturing() {
         // TODO: send a 'stop capture' image to storage
+        Log.d("CaptureService", "inserting pause image runnable");
         mHandler.post(insertPauseImage);
+//        Log.d("CaptureService", "removing pause image runnable");
+//        mHandler.removeCallbacksAndMessages(insertPauseImage);
         capture = false;
+        Log.d("CaptureService", "removing captureInterval runnable");
         mHandler.removeCallbacksAndMessages(captureInterval);
         destroyImageReader();
         destroyVirtualDisplay();
@@ -269,16 +306,16 @@ public class CaptureService extends Service {
     private void destroyVirtualDisplay() {
         if (mVirtualDisplay != null) {
             mVirtualDisplay.release();
-            mVirtualDisplay = null;
+//            mVirtualDisplay = null;
         }
         Log.i(TAG, "VirtualDisplay stopped");
     }
 
     private void destroyMediaProjection() {
         if (mMediaProjection != null) {
-            mMediaProjection.unregisterCallback(mMediaProjectionCallback);
             mMediaProjection.stop();
-            mMediaProjection = null;
+            mMediaProjection.unregisterCallback(mMediaProjectionCallback);
+//            mMediaProjection = null;
         }
         Log.i(TAG, "MediaProjection stopped");
         int intentflags;
