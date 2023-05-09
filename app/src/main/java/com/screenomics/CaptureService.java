@@ -314,13 +314,15 @@ public class CaptureService extends Service {
 
     private void stopCapturing() {
         // TODO: send a 'stop capture' image to storage
-        Log.d("CaptureService", "inserting pause image runnable");
-        mHandler.post(insertPauseImage);
+        
 //        Log.d("CaptureService", "removing pause image runnable");
 //        mHandler.removeCallbacksAndMessages(insertPauseImage);
         capture = false;
         Log.d("CaptureService", "removing captureInterval runnable");
+//        mHandler.wait(500);
         mHandler.removeCallbacksAndMessages(null);
+        Log.d("CaptureService", "inserting pause image runnable");
+        mHandler.post(insertPauseImage);
 
         // May 9 edit:
         if (mBackgroundThread != null) {
@@ -338,7 +340,7 @@ public class CaptureService extends Service {
         destroyVirtualDisplay();
         destroyMediaProjection();
 
-        mHandler = null;
+//        mHandler = null;
     }
 
     // Called on intentionally stopping the screen capture
