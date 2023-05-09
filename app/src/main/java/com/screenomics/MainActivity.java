@@ -139,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
         switchCapture.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (!buttonView.isPressed()) { return; }
             if (isChecked) {
+                Log.d("MainActivity", "pressed switch button!");
                 editor.putBoolean("recordingState", true);
                 editor.apply();
                 Log.d("MainActivity", "recordingState " + String.valueOf(recordingState));
@@ -238,6 +239,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d("onActivityResult", "intent data being passed in: " + intentToString(data));
         if (requestCode != REQUEST_CODE_MEDIA) {
             Log.e(TAG, "Unknown request code: " + requestCode);
             return;
@@ -252,10 +254,8 @@ public class MainActivity extends AppCompatActivity {
             screenCaptureIntent.putExtra("resultCode", resultCode);
             screenCaptureIntent.putExtra("intentData", data);
             screenCaptureIntent.putExtra("screenDensity", mScreenDensity);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                Log.d("onActivityResult", "Starting foreground with intent: " + intentToString(screenCaptureIntent));
-                startForegroundService(screenCaptureIntent);
-            }
+            Log.d("onActivityResult", "Starting foreground with intent: " + intentToString(screenCaptureIntent));
+            startForegroundService(screenCaptureIntent);
             startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME));
             Toast.makeText(this, "ScreenLife Capture is running!", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {

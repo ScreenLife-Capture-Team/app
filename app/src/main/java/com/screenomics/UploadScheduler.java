@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import java.io.File;
 import java.util.Calendar;
@@ -22,8 +23,10 @@ public class UploadScheduler extends BroadcastReceiver {
     // will be flagged as unused, but is called by the alarm intent below.
 
     public UploadScheduler(Context context) {
+        Log.d("UploadScheduler", "Alarm intent received! starting up");
         this.alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, UploadScheduler.class);
+        Log.d("UploadScheduler", "intent: " + intent);
         int intentflags;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
             intentflags = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
@@ -33,6 +36,8 @@ public class UploadScheduler extends BroadcastReceiver {
 
         this.alarmIntent = PendingIntent.getBroadcast(context, 0, intent, intentflags);
         this.context = context;
+
+        Log.d("UploadScheduler", "alarmIntent: " + alarmIntent);
 
         System.out.println("Resetting alarms!");
         alarm.cancel(this.alarmIntent);
@@ -46,9 +51,11 @@ public class UploadScheduler extends BroadcastReceiver {
         cal.set(Calendar.MINUTE, minute);
 
         float diff =  (cal.getTimeInMillis() - System.currentTimeMillis()) / 1000 / 60;
-        if (diff < 0)
+        if (diff < 0) {
             cal.add(Calendar.DATE, 1);
             diff =  (cal.getTimeInMillis() - System.currentTimeMillis()) / 1000 / 60;
+        }
+
 
         Logger.i(context, "ALM!" + diff);
         alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, alarmIntent);
@@ -93,6 +100,8 @@ public class UploadScheduler extends BroadcastReceiver {
         intent.putExtra("participant", participant);
         intent.putExtra("key", key);
 
-        context.startForegroundService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        }
     }
 }

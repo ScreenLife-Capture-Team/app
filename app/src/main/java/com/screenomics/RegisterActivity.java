@@ -170,7 +170,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void bindCameraPreview(@NonNull ProcessCameraProvider cameraProvider) {
-        previewView.setPreferredImplementationMode(PreviewView.ImplementationMode.SURFACE_VIEW);
+        previewView.setImplementationMode(PreviewView.ImplementationMode.PERFORMANCE);
 
         Preview preview = new Preview.Builder()
                 .build();
@@ -181,7 +181,7 @@ public class RegisterActivity extends AppCompatActivity {
                 .build();
         Log.d("bindCameraPreview", "successfully created cameraSelector");
 
-        preview.setSurfaceProvider(previewView.createSurfaceProvider());
+        preview.setSurfaceProvider(previewView.getSurfaceProvider());
         Log.d("bindCameraPreview", "successfully setSurfaceProvider");
 
         ImageAnalysis imageAnalysis =

@@ -144,7 +144,7 @@ public class CaptureService extends Service {
                 Log.d("captureInterval", "is mImageReader still here? " + mImageReader);
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
 //                TODO what's this
-                // Log.d("captureInterval", "capture? " + String.valueOf(capture));
+                 Log.d("captureInterval", "capture? " + String.valueOf(capture));
                 if (!capture) return;
                 Log.d("buffervalue", "checking value from captureInverval " + buffer);
                 if (buffer != null && !mKeyguardManager.isKeyguardLocked()) {

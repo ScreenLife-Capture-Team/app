@@ -110,7 +110,7 @@ public class SenderWorker extends Worker {
         @Override
         public boolean accept(File file) {
             List<String> parts = Arrays.asList(file.getName().replace(".png", "").split("_"));
-            Integer[] dP = parts.subList(parts.size() - 6, parts.size()).stream().map(Integer::valueOf).toArray(Integer[]::new);
+            Integer[] dP = parts.subList(parts.size() - 7, parts.size() - 1).stream().map(Integer::valueOf).toArray(Integer[]::new);
             LocalDateTime imageCreateTime = LocalDateTime.of(dP[0], dP[1], dP[2], dP[3], dP[4], dP[5]);
             return imageCreateTime.isBefore(startDateTime);
         }
