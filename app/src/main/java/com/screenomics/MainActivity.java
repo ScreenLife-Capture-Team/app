@@ -92,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
                 TimeUnit.HOURS )
                 .addTag("send_periodic")
                 .setConstraints(constraints)
+                .setInitialDelay(1, TimeUnit.HOURS)
                 .build();
         WorkManager.getInstance(this)
                 .enqueueUniquePeriodicWork("send_periodic", ExistingPeriodicWorkPolicy.REPLACE, workRequest);
@@ -256,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
             screenCaptureIntent.putExtra("screenDensity", mScreenDensity);
             Log.d("onActivityResult", "Starting foreground with intent: " + intentToString(screenCaptureIntent));
             startForegroundService(screenCaptureIntent);
-            startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME));
+            startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             Toast.makeText(this, "ScreenLife Capture is running!", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
@@ -364,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
-        }, 0, 5000);
+        }, 500, 5000);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         boolean isDev = prefs.getBoolean("isDev", false);

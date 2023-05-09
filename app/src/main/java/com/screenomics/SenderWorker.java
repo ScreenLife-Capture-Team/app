@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.work.Worker;
@@ -92,6 +93,8 @@ public class SenderWorker extends Worker {
         numTotal = numToUpload;
         System.out.println("GOT " + batches.size() + " BATCHES WITH " + numToUpload + "IMAGES TO UPLOAD" );
         System.out.println("TOTAL OF " + fileList.size() + " IMAGES THO");
+
+        Log.d("SenderWorker", "sending batches: " + batches);
 
         for (Batch batch : batches) {
             String code = batch.sendFiles();
