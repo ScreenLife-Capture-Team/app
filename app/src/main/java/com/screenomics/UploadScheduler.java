@@ -23,10 +23,8 @@ public class UploadScheduler extends BroadcastReceiver {
     // will be flagged as unused, but is called by the alarm intent below.
 
     public UploadScheduler(Context context) {
-        Log.d("UploadScheduler", "Alarm intent received! starting up");
         this.alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, UploadScheduler.class);
-        Log.d("UploadScheduler", "intent: " + intent);
         int intentflags;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
             intentflags = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
@@ -36,8 +34,6 @@ public class UploadScheduler extends BroadcastReceiver {
 
         this.alarmIntent = PendingIntent.getBroadcast(context, 0, intent, intentflags);
         this.context = context;
-
-        Log.d("UploadScheduler", "alarmIntent: " + alarmIntent);
 
         System.out.println("Resetting alarms!");
         alarm.cancel(this.alarmIntent);

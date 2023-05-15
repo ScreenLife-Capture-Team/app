@@ -2,6 +2,11 @@
 
 ### Changelog
 #### v. 1.1.0
+
+- Fixed multiple bugs regarding QR scanner, starting issue on Pixel devices
+- Added a descriptor field in file names
+
+#### v. 1.1.0
 #### 28 Feb 2023
 
 - Added notice screens when user intentionally pause/resume recording

@@ -143,10 +143,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("MainActivity", "pressed switch button!");
                 editor.putBoolean("recordingState", true);
                 editor.apply();
-                Log.d("MainActivity", "recordingState " + String.valueOf(recordingState));
-                Log.d("MainActivity", "calling startMediaProjectionRequest");
                 startMediaProjectionRequest();
-                Log.d("MainActivity", "after startMediaProjectionRequest");
                 captureState.setText(getResources().getString(R.string.capture_state_on));
                 captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
             } else {
@@ -223,7 +220,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void startMediaProjectionRequest() {
         mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-        Log.d("MediaProjectionRequest", String.valueOf(mProjectionManager));
         startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE_MEDIA);
     }
 
@@ -240,7 +236,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("onActivityResult", "intent data being passed in: " + intentToString(data));
         if (requestCode != REQUEST_CODE_MEDIA) {
             Log.e(TAG, "Unknown request code: " + requestCode);
             return;
@@ -255,7 +250,6 @@ public class MainActivity extends AppCompatActivity {
             screenCaptureIntent.putExtra("resultCode", resultCode);
             screenCaptureIntent.putExtra("intentData", data);
             screenCaptureIntent.putExtra("screenDensity", mScreenDensity);
-            Log.d("onActivityResult", "Starting foreground with intent: " + intentToString(screenCaptureIntent));
             startForegroundService(screenCaptureIntent);
             startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             Toast.makeText(this, "ScreenLife Capture is running!", Toast.LENGTH_SHORT).show();

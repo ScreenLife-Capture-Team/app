@@ -161,7 +161,6 @@ public class RegisterActivity extends AppCompatActivity {
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                Log.d("startCamera", "successfully created cameraProvider");
                 bindCameraPreview(cameraProvider);
             } catch (ExecutionException | InterruptedException e) {
                 Toast.makeText(this, "Error starting camera " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -174,15 +173,12 @@ public class RegisterActivity extends AppCompatActivity {
 
         Preview preview = new Preview.Builder()
                 .build();
-        Log.d("bindCameraPreview", "successfully created preview");
 
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
-        Log.d("bindCameraPreview", "successfully created cameraSelector");
 
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
-        Log.d("bindCameraPreview", "successfully setSurfaceProvider");
 
         ImageAnalysis imageAnalysis =
                 new ImageAnalysis.Builder()
@@ -190,7 +186,6 @@ public class RegisterActivity extends AppCompatActivity {
                         .setTargetResolution(new Size(1280, 720))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
-        Log.d("bindCameraPreview", "successfully created imageAnalysis");
 
 //        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer(new QRCodeFoundListener() {
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzerNew(new BarcodesListener() {
