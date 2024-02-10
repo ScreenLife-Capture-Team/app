@@ -111,11 +111,11 @@ public class MainActivity extends AppCompatActivity {
 
         String key = prefs.getString("key", "");
         recordingState = prefs.getBoolean("recordingState", false);
-//        if (key.equals("")) {
-//            Intent intent = new Intent(this, RegisterActivity.class);
-//            startActivity(intent);
-//            finish();
-//        }
+        if (key.equals("")) {
+            Intent intent = new Intent(this, RegisterActivity.class);
+            startActivity(intent);
+            finish();
+        }
 
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
