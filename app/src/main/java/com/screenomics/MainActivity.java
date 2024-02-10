@@ -20,11 +20,11 @@ import android.util.Log;
 
 import android.view.View;
 import android.widget.Button;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.work.Constraints;
@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_NOTIFICATIONS = 1;
     private static final int REQUEST_CODE_MEDIA = 1000;
     private static final int REQUEST_CODE_PHONE = 1001;
-    private Switch switchCapture;
+    private SwitchCompat switchCapture;
     private Timer numImageRefreshTimer;
     private Button infoButton;
     private Button logButton;
@@ -111,11 +111,11 @@ public class MainActivity extends AppCompatActivity {
 
         String key = prefs.getString("key", "");
         recordingState = prefs.getBoolean("recordingState", false);
-        if (key.equals("")) {
-            Intent intent = new Intent(this, RegisterActivity.class);
-            startActivity(intent);
-            finish();
-        }
+//        if (key.equals("")) {
+//            Intent intent = new Intent(this, RegisterActivity.class);
+//            startActivity(intent);
+//            finish();
+//        }
 
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
