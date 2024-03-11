@@ -164,7 +164,7 @@ public class CaptureService extends Service {
                     encryptImage(bitmap, "placeholder");
                     buffer.rewind();
                 }
-                mHandler.postDelayed(captureInterval, 12345, 5000);
+                mHandler.postDelayed(captureInterval, 5000);
             }
         };
 
@@ -256,7 +256,7 @@ public class CaptureService extends Service {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 //                Log.d("CaptureService", "double check status: " + mHandler.hasCallbacks(insertStartImage));
 //            }
-            mHandler.postDelayed(captureInterval, 12345, 2000);
+            mHandler.postDelayed(captureInterval, 2000);
         } catch (Exception e) {
             e.printStackTrace();
         }
