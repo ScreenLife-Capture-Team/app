@@ -32,12 +32,12 @@
         android:theme="@style/AppTheme"
         >
         <service
-            android:name=".CaptureService"
+            android:name=".services.capture.CaptureService"
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="mediaProjection" />
         <service
-            android:name=".UploadService"
+            android:name=".services.upload.UploadService"
             android:enabled="true"
             android:exported="true" />
 
@@ -62,7 +62,7 @@
             android:name=".registration.RegisterActivity"
             android:parentActivityName=".MainActivity" />
 
-        <receiver android:name=".UploadScheduler"
+        <receiver android:name=".services.upload.UploadScheduler"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

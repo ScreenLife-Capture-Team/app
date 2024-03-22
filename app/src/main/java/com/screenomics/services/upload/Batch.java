@@ -1,8 +1,10 @@
-package com.screenomics;
+package com.screenomics.services.upload;
 
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+
+import com.screenomics.Constants;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

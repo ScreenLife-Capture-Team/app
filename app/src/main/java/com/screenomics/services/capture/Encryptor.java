@@ -1,4 +1,4 @@
-package com.screenomics;
+package com.screenomics.services.capture;
 
 
 import java.io.FileInputStream;

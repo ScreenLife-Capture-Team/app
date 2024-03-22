@@ -1,4 +1,4 @@
-package com.screenomics;
+package com.screenomics.services.upload;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -15,6 +15,10 @@ import okhttp3.OkHttpClient;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
+import com.screenomics.Constants;
+import com.screenomics.InternetConnection;
+import com.screenomics.R;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.time.LocalDateTime;
@@ -29,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 public class UploadService extends Service {
 
-    enum Status {
+    public enum Status {
         IDLE, SENDING, FAILED, SUCCESS
     }
 
@@ -190,7 +194,7 @@ public class UploadService extends Service {
     }
 
     public class LocalBinder extends Binder {
-        UploadService getService() { return UploadService.this; }
+        public UploadService getService() { return UploadService.this; }
     }
 
     @Override public IBinder onBind(Intent intent) { return new LocalBinder(); }

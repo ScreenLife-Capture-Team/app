@@ -1,8 +1,7 @@
-package com.screenomics;
+package com.screenomics.services.upload;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -10,13 +9,13 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.screenomics.Constants;
+
 import org.joda.time.DateTime;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;

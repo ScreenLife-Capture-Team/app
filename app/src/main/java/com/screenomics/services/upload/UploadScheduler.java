@@ -1,4 +1,4 @@
-package com.screenomics;
+package com.screenomics.services.upload;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -8,7 +8,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.util.Log;
+
+import com.screenomics.InternetConnection;
+import com.screenomics.Logger;
 
 import java.io.File;
 import java.util.Calendar;

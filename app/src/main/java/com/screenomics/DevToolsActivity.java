@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.screenomics.services.upload.UploadScheduler;
+
 import java.io.File;
 
 public class DevToolsActivity extends Activity {

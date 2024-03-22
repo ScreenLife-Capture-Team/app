@@ -36,6 +36,10 @@ import androidx.work.WorkManager;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.screenomics.registration.RegisterActivity;
+import com.screenomics.services.capture.CaptureService;
+import com.screenomics.services.upload.SenderWorker;
+import com.screenomics.services.upload.UploadScheduler;
+import com.screenomics.services.upload.UploadService;
 
 import java.io.File;
 import java.util.List;

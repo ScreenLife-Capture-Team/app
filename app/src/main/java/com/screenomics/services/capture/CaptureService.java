@@ -1,4 +1,4 @@
-package com.screenomics;
+package com.screenomics.services.capture;
 
 import android.annotation.SuppressLint;
 import android.app.KeyguardManager;
@@ -13,7 +13,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
-import android.graphics.drawable.Drawable;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
@@ -29,6 +28,10 @@ import android.os.Process;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.screenomics.Converter;
+import com.screenomics.MainActivity;
+import com.screenomics.R;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -37,7 +40,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 
 
@@ -351,7 +353,7 @@ public class CaptureService extends Service {
     }
 
     public class LocalBinder extends Binder {
-        CaptureService getService() { return CaptureService.this; }
+        public CaptureService getService() { return CaptureService.this; }
     }
 
     @Override
