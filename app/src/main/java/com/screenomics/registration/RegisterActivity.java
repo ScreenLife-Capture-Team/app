@@ -57,8 +57,7 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.register);
-        setSupportActionBar(findViewById(R.id.toolbar));
-        getSupportActionBar().setSubtitle("By the SUTD Screenlife Capture Team");
+        setSupportActionBar(findViewById(R.id.registerToolbar));
 
         previewView = findViewById(R.id.qrPreview);
         continueButton = findViewById(R.id.continueButton);

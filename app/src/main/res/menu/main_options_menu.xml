@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/aboutOption"
+        android:title="About" />
+    <item
+        android:id="@+id/logsOption"
+        android:title="Logs" />
+    <item
+        android:id="@+id/devOption"
+        android:title="Dev Tools"
+        android:visible="false" />
+</menu>

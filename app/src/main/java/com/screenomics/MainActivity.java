@@ -16,11 +16,14 @@ import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
@@ -52,9 +55,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_PHONE = 1001;
     private SwitchCompat switchCapture;
     private Timer numImageRefreshTimer;
-    private Button infoButton;
-    private Button logButton;
-    private Button devButton;
     private TextView captureState;
     private Boolean recordingState;
     private TextView numImagesText;
@@ -66,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.main);
+        setSupportActionBar(findViewById(R.id.mainToolbar));
 
         WorkManager.getInstance(this).cancelAllWork();
         ListenableFuture<List<WorkInfo>> send_periodic1 = WorkManager.getInstance(this).getWorkInfosByTag("send_periodic");
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(
                 SenderWorker.class,
                 1,
-                TimeUnit.HOURS )
+                TimeUnit.HOURS)
                 .addTag("send_periodic")
                 .setConstraints(constraints)
                 .setInitialDelay(1, TimeUnit.HOURS)
@@ -118,22 +119,16 @@ public class MainActivity extends AppCompatActivity {
 
         captureState = findViewById(R.id.captureState);
         switchCapture = findViewById(R.id.switchCapture);
-        infoButton = findViewById(R.id.infoButton);
-        logButton = findViewById(R.id.logButton);
-        devButton = findViewById(R.id.devButton);
         numImagesText = findViewById(R.id.imageNumber);
         uploadButton = findViewById(R.id.uploadButton);
         numUploadText = findViewById(R.id.uploadNumber);
 
         switchCapture.setChecked(recordingState);
 
-        devButton.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, DevToolsActivity.class);
-            MainActivity.this.startActivity(intent);
-        });
-
         switchCapture.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (!buttonView.isPressed()) { return; }
+            if (!buttonView.isPressed()) {
+                return;
+            }
             if (isChecked) {
                 Log.d("MainActivity", "pressed switch button!");
                 editor.putBoolean("recordingState", true);
@@ -149,32 +144,6 @@ public class MainActivity extends AppCompatActivity {
                 captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
             }
         });
-
-        infoButton.setOnClickListener(v -> {
-            infoOpenCount++;
-            if (infoOpenCount == 5) {
-                editor.putBoolean("isDev", true);
-                editor.apply();
-                devButton.setVisibility(View.VISIBLE);
-            }
-            DialogFragment informationDialog = new InfoDialog();
-            informationDialog.show(getSupportFragmentManager(), "Information Dialog");
-        });
-
-        logButton.setOnClickListener(v -> {
-
-            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-            alertDialog.setTitle("Logs");
-            alertDialog.setMessage(Logger.getAll(this));
-            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Ok",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-            alertDialog.show();
-        });
-
 
         uploadButton.setOnClickListener(v -> {
             if (!InternetConnection.checkWiFiConnection(getApplicationContext())) {
@@ -211,6 +180,69 @@ public class MainActivity extends AppCompatActivity {
         if (!f_image.exists()) f_image.mkdir();
         if (!f_encrypt.exists()) f_encrypt.mkdir();
         Log.i(TAG, "f_image: " + f_image.getAbsolutePath());
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_options_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.aboutOption) {
+            SharedPreferences prefs = getSharedPreferences(
+                    getPackageName() + "_preferences"
+                    , Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+
+            infoOpenCount++;
+            if (infoOpenCount >= 5) {
+                editor.putBoolean("isDev", true);
+                editor.apply();
+                invalidateOptionsMenu();
+            }
+            DialogFragment informationDialog = new InfoDialog();
+            informationDialog.show(getSupportFragmentManager(), "Information Dialog");
+        }
+
+        if (id == R.id.logsOption) {
+            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+            alertDialog.setTitle("Logs");
+            alertDialog.setMessage(Logger.getAll(this));
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Ok",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+            alertDialog.show();
+        }
+
+        if (id == R.id.devOption) {
+            Intent intent = new Intent(MainActivity.this, DevToolsActivity.class);
+            MainActivity.this.startActivity(intent);
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        SharedPreferences prefs = getSharedPreferences(
+                getPackageName() + "_preferences"
+                , Context.MODE_PRIVATE);
+        boolean isDev = prefs.getBoolean("isDev", false);
+
+        if (isDev) {
+            menu.findItem(R.id.devOption).setVisible(true);
+        } else {
+            menu.findItem(R.id.devOption).setVisible(false);
+        }
+
+        return super.onPrepareOptionsMenu(menu);
     }
 
     private void startMediaProjectionRequest() {
@@ -262,8 +294,7 @@ public class MainActivity extends AppCompatActivity {
                 .append(intent.getAction())
                 .append(" data: ")
                 .append(intent.getDataString())
-                .append(" extras: ")
-                ;
+                .append(" extras: ");
         for (String key : intent.getExtras().keySet())
             stringBuilder.append(key).append("=").append(intent.getExtras().get(key)).append(" ");
 
@@ -271,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void createAlarm(){
+    private void createAlarm() {
         final UploadScheduler alarm = new UploadScheduler(this);
     }
 
@@ -290,10 +321,12 @@ public class MainActivity extends AppCompatActivity {
                 captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
                 switchCapture.setEnabled(true);
                 switchCapture.setChecked(true);
-            }}
+            }
+        }
 
         @Override
-        public void onServiceDisconnected(ComponentName componentName) { }
+        public void onServiceDisconnected(ComponentName componentName) {
+        }
     };
 
     private final ServiceConnection uploaderServiceConnection = new ServiceConnection() {
@@ -309,7 +342,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onServiceDisconnected(ComponentName componentName) { }
+        public void onServiceDisconnected(ComponentName componentName) {
+        }
     };
 
     @Override
@@ -333,7 +367,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        File outputDir = new File(getApplicationContext().getExternalFilesDir(null).getAbsolutePath()+File.separator+"encrypt");
+                        File outputDir = new File(getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + File.separator + "encrypt");
                         File[] files = outputDir.listFiles();
                         if (files == null) return;
                         int numImages = files.length;
@@ -355,10 +389,6 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         }, 500, 5000);
-
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean isDev = prefs.getBoolean("isDev", false);
-        if (!isDev) devButton.setVisibility(View.GONE);
     }
 
     // This needs to be here so that onResume is called at the correct time.

@@ -21,11 +21,11 @@
             app:contentScrim="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
 
-            app:toolbarId="@+id/toolbar">
+            app:toolbarId="@+id/registerToolbar">
 
 
             <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+                android:id="@+id/registerToolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:subtitle="By the SUTD Screenlife Capture Team"
