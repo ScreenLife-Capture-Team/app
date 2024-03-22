@@ -18,7 +18,6 @@ import android.util.Log;
 
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -311,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
         stopService(serviceIntent);
     }
 
-    private final ServiceConnection serviceConnection = new ServiceConnection() {
+    private final ServiceConnection captureServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             CaptureService.LocalBinder localBinder = (CaptureService.LocalBinder) iBinder;
@@ -329,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private final ServiceConnection uploaderServiceConnection = new ServiceConnection() {
+    private final ServiceConnection uploadServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             UploadService.LocalBinder localBinder = (UploadService.LocalBinder) iBinder;
@@ -355,10 +354,10 @@ public class MainActivity extends AppCompatActivity {
         switchCapture.setEnabled(true);
         switchCapture.setChecked(false);
         Intent screenCaptureIntent = new Intent(this, CaptureService.class);
-        bindService(screenCaptureIntent, serviceConnection, 0);
+        bindService(screenCaptureIntent, captureServiceConnection, 0);
 
         Intent intent = new Intent(this, UploadService.class);
-        bindService(intent, uploaderServiceConnection, 0);
+        bindService(intent, uploadServiceConnection, 0);
 
         numImageRefreshTimer = new Timer();
         numImageRefreshTimer.schedule(new TimerTask() {
@@ -401,8 +400,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         numImageRefreshTimer.cancel();
-        unbindService(serviceConnection);
-        unbindService(uploaderServiceConnection);
+        unbindService(captureServiceConnection);
+        unbindService(uploadServiceConnection);
     }
 }
 
