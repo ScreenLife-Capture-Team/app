@@ -232,6 +232,7 @@ public class CaptureService extends Service {
                     .setContentTitle("ScreenLife Capture is currently enabled")
                     .setContentText("If this notification disappears, please re-enable it from the application.")
                     .setContentIntent(pendingIntent)
+                    .setOngoing(true)
                     .build();
         }
 
@@ -346,6 +347,7 @@ public class CaptureService extends Service {
                     .setContentTitle("ScreenLife Capture is NOT Running!")
                     .setContentText("Please restart the application!")
                     .setContentIntent(pendingIntent)
+                    .setOngoing(true)
                     .build();
         }
         startForeground(1, notification);
