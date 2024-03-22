@@ -2,10 +2,6 @@ package com.screenomics.services.capture;
 
 import android.annotation.SuppressLint;
 import android.app.KeyguardManager;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -20,7 +16,6 @@ import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -29,8 +24,8 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.screenomics.Converter;
-import com.screenomics.MainActivity;
 import com.screenomics.R;
+import com.screenomics.notifications.CaptureNotifications;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -45,58 +40,46 @@ import java.util.Date;
 
 public class CaptureService extends Service {
     private static final String TAG = "Screencapture";
-    private static final String CHANNEL_ID = "screenomics_id";
-    private static final String CAPTURE_CHANNEL_ID = "capture-channel";
     private static final DateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+    private static final int DISPLAY_WIDTH = 720;
+    private static final int DISPLAY_HEIGHT = 1280;
+    public static byte[] key;
     private static Intent intent;
     private static int resultCode;
     private static int screenDensity;
+    private static ByteBuffer buffer;
+    private static int pixelStride;
+    private static int rowPadding;
+    private static boolean capture = false;
     private MediaProjection mMediaProjection;
     private MediaProjectionManager mProjectionManager;
     private MediaProjectionCallback mMediaProjectionCallback;
     private ImageReader mImageReader;
     private KeyguardManager mKeyguardManager;
     private VirtualDisplay mVirtualDisplay;
-    private static final int DISPLAY_WIDTH = 720;
-    private static final int DISPLAY_HEIGHT = 1280;
     private Runnable captureInterval;
     private Runnable insertStartImage;
     private Runnable insertPauseImage;
     private Handler mHandler = new Handler();
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
-    public static byte[] key;
-    private static ByteBuffer buffer;
-    private static int pixelStride;
-    private static int rowPadding;
-    private static boolean capture = false;
 
-    private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-//            Log.d("onImageAvailable", "triggering onImageAvailable!");
-            mBackgroundHandler.post(new ImageProcessor(reader.acquireLatestImage()));
-        }
-    }
+    private CaptureNotifications notifications;
 
-    private class ImageProcessor implements Runnable {
-        private final Image mImage;
+    public static String intentToString(Intent intent) {
+        if (intent == null)
+            return "";
 
-        public ImageProcessor(Image image) {
-            mImage = image;
-        }
+        StringBuilder stringBuilder = new StringBuilder("action: ")
+                .append(intent.getAction())
+                .append(" data: ")
+                .append(intent.getDataString())
+                .append(" extras: ");
+        for (String key : intent.getExtras().keySet())
+            stringBuilder.append(key).append("=").append(intent.getExtras().get(key)).append(" ");
 
-        @Override
-        public void run() {
-            if (mImage != null) {
-                Image.Plane[] planes = mImage.getPlanes();
-                buffer = planes[0].getBuffer();
-                pixelStride = planes[0].getPixelStride();
-                int rowStride = planes[0].getRowStride();
-                rowPadding = rowStride - pixelStride * DISPLAY_WIDTH;
-                mImage.close();
-            }
-        }
+        return stringBuilder.toString();
+
     }
 
     private void encryptImage(Bitmap bitmap, String descriptor) {
@@ -133,36 +116,11 @@ public class CaptureService extends Service {
         }
     }
 
-    // Called when Screen Cast is disabled
-    private class MediaProjectionCallback extends MediaProjection.Callback {
-        @Override
-        public void onStop() {
-            Log.e(TAG, "I'm stopped");
-            try {
-//                stopCapturing();
-                destroyImageReader();
-            } catch (RuntimeException e) {
-                e.printStackTrace();
-            }
-
-        }
-    }
-
-    private void notifyImageCaptured() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            Notification notification = new Notification.Builder(this, CAPTURE_CHANNEL_ID)
-                    .setSmallIcon(R.drawable.dna)
-                    .setContentTitle("ScreenLife Capture just took a capture!")
-                    .setContentText("At time: " + sdf.format(new Date()))
-                    .build();
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.notify(2, notification);
-        }
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
+
+        notifications = new CaptureNotifications(this);
 
         mBackgroundThread = new HandlerThread("ImageReaderThread");
         mBackgroundThread.start();
@@ -182,7 +140,7 @@ public class CaptureService extends Service {
                     encryptImage(bitmap, "placeholder");
                     buffer.rewind();
 
-                    notifyImageCaptured();
+                    notifications.notifyImageCaptured();
                 }
                 mHandler.postDelayed(captureInterval, 5000);
             }
@@ -193,11 +151,9 @@ public class CaptureService extends Service {
             @Override
             public void run() {
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
-//                if (!capture) return;
                 InputStream is = getResources().openRawResource(R.raw.resumerecord);
                 Bitmap bitmap = BitmapFactory.decodeStream(is);
                 encryptImage(bitmap, "resume");
-
             }
         };
 
@@ -205,21 +161,17 @@ public class CaptureService extends Service {
             @Override
             public void run() {
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
-//                if (!capture) return;
                 InputStream is = getResources().openRawResource(R.raw.pauserecord);
                 Bitmap bitmap = BitmapFactory.decodeStream(is);
                 encryptImage(bitmap, "pause");
-
             }
         };
 
 
     }
 
-
     @Override
     public int onStartCommand(Intent receivedIntent, int flags, int startId) {
-//        Log.d("onStartCommand", "receivedIntent: " + intentToString(receivedIntent));
         if (receivedIntent != null) {
             resultCode = receivedIntent.getIntExtra("resultCode", -1);
             intent = receivedIntent.getParcelableExtra("intentData");
@@ -232,32 +184,13 @@ public class CaptureService extends Service {
             mHandler = new Handler();
         }
 
-        createNotificationChannel();
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        int intentflags;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            intentflags = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
-        } else {
-            intentflags = PendingIntent.FLAG_UPDATE_CURRENT;
-        }
+        notifications.notifyCaptureState(
+                this,
+                "ScreenLife Capture is currently enabled",
+                "If this notification " +
+                        "disappears, please re-enable it from the application."
+        );
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent,
-                intentflags);
-        Notification notification = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            notification = new Notification.Builder(this, CHANNEL_ID)
-                    .setSmallIcon(R.drawable.dna)
-                    .setContentTitle("ScreenLife Capture is currently enabled")
-                    .setContentText("If this notification disappears, please re-enable it from " +
-                            "the application.")
-                    .setContentIntent(pendingIntent)
-                    .setOngoing(true)
-                    .build();
-        }
-
-
-        Log.i(TAG, "Starting foreground service");
-        startForeground(1, notification);
         mMediaProjection = mProjectionManager.getMediaProjection(resultCode, intent);
         mMediaProjectionCallback = new MediaProjectionCallback();
         mMediaProjection.registerCallback(mMediaProjectionCallback, null);
@@ -274,11 +207,6 @@ public class CaptureService extends Service {
             capture = true;
 
             mHandler.post(insertStartImage);
-
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//                Log.d("CaptureService", "double check status: " + mHandler.hasCallbacks
-//                (insertStartImage));
-//            }
             mHandler.postDelayed(captureInterval, 2000);
         } catch (Exception e) {
             e.printStackTrace();
@@ -302,7 +230,6 @@ public class CaptureService extends Service {
 
     private void stopCapturing() {
         capture = false;
-//        mHandler.wait(500);
         mHandler.removeCallbacksAndMessages(null);
         mHandler.post(insertPauseImage);
 
@@ -355,34 +282,14 @@ public class CaptureService extends Service {
             mMediaProjection = null;
         }
         Log.i(TAG, "MediaProjection stopped");
-        int intentflags;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            intentflags = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
-        } else {
-            intentflags = PendingIntent.FLAG_UPDATE_CURRENT;
-        }
 
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, intentflags);
-        Notification notification = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            notification = new Notification.Builder(this, CHANNEL_ID)
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
-                    .setContentTitle("ScreenLife Capture is NOT Running!")
-                    .setContentText("Please restart the application!")
-                    .setContentIntent(pendingIntent)
-                    .setOngoing(true)
-                    .build();
-        }
-        startForeground(1, notification);
+        notifications.notifyCaptureState(
+                this,
+                "ScreenLife Capture is NOT Running!",
+                "Please restart the application!"
+        );
+
         capture = false;
-    }
-
-    public class LocalBinder extends Binder {
-        public CaptureService getService() {
-            return CaptureService.this;
-        }
     }
 
     @Override
@@ -394,39 +301,52 @@ public class CaptureService extends Service {
         return capture;
     }
 
-    public static String intentToString(Intent intent) {
-        if (intent == null)
-            return "";
-
-        StringBuilder stringBuilder = new StringBuilder("action: ")
-                .append(intent.getAction())
-                .append(" data: ")
-                .append(intent.getDataString())
-                .append(" extras: ");
-        for (String key : intent.getExtras().keySet())
-            stringBuilder.append(key).append("=").append(intent.getExtras().get(key)).append(" ");
-
-        return stringBuilder.toString();
-
+    private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+//            Log.d("onImageAvailable", "triggering onImageAvailable!");
+            mBackgroundHandler.post(new ImageProcessor(reader.acquireLatestImage()));
+        }
     }
 
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+    private class ImageProcessor implements Runnable {
+        private final Image mImage;
 
-            NotificationChannel serviceChannel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Screenomics Service Channel",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            notificationManager.createNotificationChannel(serviceChannel);
+        public ImageProcessor(Image image) {
+            mImage = image;
+        }
 
-            NotificationChannel updateChannel = new NotificationChannel(
-                    CAPTURE_CHANNEL_ID,
-                    "Screenomics Updates Channel",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            notificationManager.createNotificationChannel(updateChannel);
+        @Override
+        public void run() {
+            if (mImage != null) {
+                Image.Plane[] planes = mImage.getPlanes();
+                buffer = planes[0].getBuffer();
+                pixelStride = planes[0].getPixelStride();
+                int rowStride = planes[0].getRowStride();
+                rowPadding = rowStride - pixelStride * DISPLAY_WIDTH;
+                mImage.close();
+            }
+        }
+    }
+
+    // Called when Screen Cast is disabled
+    private class MediaProjectionCallback extends MediaProjection.Callback {
+        @Override
+        public void onStop() {
+            Log.e(TAG, "I'm stopped");
+            try {
+//                stopCapturing();
+                destroyImageReader();
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+    public class LocalBinder extends Binder {
+        public CaptureService getService() {
+            return CaptureService.this;
         }
     }
 }
