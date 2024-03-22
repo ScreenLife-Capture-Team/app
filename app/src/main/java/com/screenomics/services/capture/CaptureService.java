@@ -46,6 +46,7 @@ import java.util.Date;
 public class CaptureService extends Service {
     private static final String TAG = "Screencapture";
     private static final String CHANNEL_ID = "screenomics_id";
+    private static final String CAPTURE_CHANNEL_ID = "capture-channel";
     private static final DateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
     private static Intent intent;
     private static int resultCode;
@@ -112,13 +113,14 @@ public class CaptureService extends Service {
             fos = new FileOutputStream(dir + "/images" + screenshot);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fos);
             try {
-                Encryptor.encryptFile(key, screenshot, dir + "/images" + screenshot, dir + "/encrypt" + screenshot);
+                Encryptor.encryptFile(key, screenshot, dir + "/images" + screenshot, dir +
+                        "/encrypt" + screenshot);
                 Log.i(TAG, "Encryption done");
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            File f = new File(dir+"/images"+screenshot);
-            if (f.delete()) Log.e(TAG, "file deleted: " + dir +"/images" + screenshot);
+            File f = new File(dir + "/images" + screenshot);
+            if (f.delete()) Log.e(TAG, "file deleted: " + dir + "/images" + screenshot);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } finally {
@@ -146,6 +148,18 @@ public class CaptureService extends Service {
         }
     }
 
+    private void notifyImageCaptured() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            Notification notification = new Notification.Builder(this, CAPTURE_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.dna)
+                    .setContentTitle("ScreenLife Capture just took a capture!")
+                    .setContentText("At time: " + sdf.format(new Date()))
+                    .build();
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.notify(2, notification);
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -153,7 +167,8 @@ public class CaptureService extends Service {
         mBackgroundThread = new HandlerThread("ImageReaderThread");
         mBackgroundThread.start();
 
-        mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        mProjectionManager =
+                (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         mKeyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
         captureInterval = new Runnable() {
             @Override
@@ -161,10 +176,13 @@ public class CaptureService extends Service {
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
                 if (!capture) return;
                 if (buffer != null && !mKeyguardManager.isKeyguardLocked()) {
-                    Bitmap bitmap = Bitmap.createBitmap(DISPLAY_WIDTH + rowPadding / pixelStride, DISPLAY_HEIGHT, Bitmap.Config.ARGB_8888);
+                    Bitmap bitmap = Bitmap.createBitmap(DISPLAY_WIDTH + rowPadding / pixelStride,
+                            DISPLAY_HEIGHT, Bitmap.Config.ARGB_8888);
                     bitmap.copyPixelsFromBuffer(buffer);
                     encryptImage(bitmap, "placeholder");
                     buffer.rewind();
+
+                    notifyImageCaptured();
                 }
                 mHandler.postDelayed(captureInterval, 5000);
             }
@@ -196,7 +214,6 @@ public class CaptureService extends Service {
         };
 
 
-
     }
 
 
@@ -218,19 +235,21 @@ public class CaptureService extends Service {
         createNotificationChannel();
         Intent notificationIntent = new Intent(this, MainActivity.class);
         int intentflags;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             intentflags = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
-        }else{
+        } else {
             intentflags = PendingIntent.FLAG_UPDATE_CURRENT;
         }
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,0, notificationIntent, intentflags);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent,
+                intentflags);
         Notification notification = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             notification = new Notification.Builder(this, CHANNEL_ID)
                     .setSmallIcon(R.drawable.dna)
                     .setContentTitle("ScreenLife Capture is currently enabled")
-                    .setContentText("If this notification disappears, please re-enable it from the application.")
+                    .setContentText("If this notification disappears, please re-enable it from " +
+                            "the application.")
                     .setContentIntent(pendingIntent)
                     .setOngoing(true)
                     .build();
@@ -257,7 +276,8 @@ public class CaptureService extends Service {
             mHandler.post(insertStartImage);
 
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//                Log.d("CaptureService", "double check status: " + mHandler.hasCallbacks(insertStartImage));
+//                Log.d("CaptureService", "double check status: " + mHandler.hasCallbacks
+//                (insertStartImage));
 //            }
             mHandler.postDelayed(captureInterval, 2000);
         } catch (Exception e) {
@@ -268,10 +288,15 @@ public class CaptureService extends Service {
     @SuppressLint("WrongConstant")
     private void createVirtualDisplay() {
         if (mMediaProjection != null) {
-            mImageReader = ImageReader.newInstance(DISPLAY_WIDTH, DISPLAY_HEIGHT, PixelFormat.RGBA_8888, 5);
-            mVirtualDisplay = mMediaProjection.createVirtualDisplay(TAG, DISPLAY_WIDTH, DISPLAY_HEIGHT, screenDensity, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mImageReader.getSurface(), null, null);
+            mImageReader = ImageReader.newInstance(DISPLAY_WIDTH, DISPLAY_HEIGHT,
+                    PixelFormat.RGBA_8888, 5);
+            mVirtualDisplay = mMediaProjection.createVirtualDisplay(TAG, DISPLAY_WIDTH,
+                    DISPLAY_HEIGHT, screenDensity,
+                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mImageReader.getSurface(),
+                    null, null);
 
-            mImageReader.setOnImageAvailableListener(new ImageAvailableListener(), mBackgroundHandler);
+            mImageReader.setOnImageAvailableListener(new ImageAvailableListener(),
+                    mBackgroundHandler);
         }
     }
 
@@ -331,9 +356,9 @@ public class CaptureService extends Service {
         }
         Log.i(TAG, "MediaProjection stopped");
         int intentflags;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             intentflags = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
-        }else{
+        } else {
             intentflags = PendingIntent.FLAG_UPDATE_CURRENT;
         }
 
@@ -355,13 +380,19 @@ public class CaptureService extends Service {
     }
 
     public class LocalBinder extends Binder {
-        public CaptureService getService() { return CaptureService.this; }
+        public CaptureService getService() {
+            return CaptureService.this;
+        }
     }
 
     @Override
-    public IBinder onBind(Intent intent) { return new LocalBinder(); }
+    public IBinder onBind(Intent intent) {
+        return new LocalBinder();
+    }
 
-    public boolean isCapturing() { return capture; }
+    public boolean isCapturing() {
+        return capture;
+    }
 
     public static String intentToString(Intent intent) {
         if (intent == null)
@@ -371,8 +402,7 @@ public class CaptureService extends Service {
                 .append(intent.getAction())
                 .append(" data: ")
                 .append(intent.getDataString())
-                .append(" extras: ")
-                ;
+                .append(" extras: ");
         for (String key : intent.getExtras().keySet())
             stringBuilder.append(key).append("=").append(intent.getExtras().get(key)).append(" ");
 
@@ -382,13 +412,21 @@ public class CaptureService extends Service {
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+
             NotificationChannel serviceChannel = new NotificationChannel(
                     CHANNEL_ID,
                     "Screenomics Service Channel",
                     NotificationManager.IMPORTANCE_HIGH
             );
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(serviceChannel);
+
+            NotificationChannel updateChannel = new NotificationChannel(
+                    CAPTURE_CHANNEL_ID,
+                    "Screenomics Updates Channel",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+            notificationManager.createNotificationChannel(updateChannel);
         }
     }
 }
