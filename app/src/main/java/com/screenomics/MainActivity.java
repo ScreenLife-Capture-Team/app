@@ -1,7 +1,6 @@
 package com.screenomics;
 
 import android.Manifest;
-import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -11,7 +10,6 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjectionManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -33,14 +31,11 @@ import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
-import androidx.work.WorkRequest;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
+import com.screenomics.registration.RegisterActivity;
 
 import java.io.File;
-import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;

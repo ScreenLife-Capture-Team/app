@@ -1,4 +1,4 @@
-package com.screenomics;
+package com.screenomics.registration;
 
 import androidx.annotation.NonNull;
 import androidx.camera.core.ExperimentalGetImage;

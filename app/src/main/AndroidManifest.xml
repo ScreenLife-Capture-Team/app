@@ -59,7 +59,7 @@
         </activity>
 
         <activity
-            android:name=".RegisterActivity"
+            android:name=".registration.RegisterActivity"
             android:parentActivityName=".MainActivity" />
 
         <receiver android:name=".UploadScheduler"

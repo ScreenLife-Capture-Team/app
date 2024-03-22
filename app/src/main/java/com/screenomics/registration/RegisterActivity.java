@@ -1,4 +1,4 @@
-package com.screenomics;
+package com.screenomics.registration;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 
 import android.text.InputType;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -31,13 +30,14 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.common.Barcode;
+import com.screenomics.Converter;
+import com.screenomics.MainActivity;
+import com.screenomics.R;
 
 import android.util.Size;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 

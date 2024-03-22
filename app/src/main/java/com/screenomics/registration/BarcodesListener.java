@@ -1,4 +1,4 @@
-package com.screenomics;
+package com.screenomics.registration;
 
 import com.google.mlkit.vision.barcode.common.Barcode;
 
