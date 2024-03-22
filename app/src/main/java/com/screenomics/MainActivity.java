@@ -104,9 +104,9 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = prefs.edit();
 
-        String key = prefs.getString("key", "");
+        int status = prefs.getInt("state", 0);
         recordingState = prefs.getBoolean("recordingState", false);
-        if (key.equals("")) {
+        if (status == 0) {
             Intent intent = new Intent(this, RegisterActivity.class);
             startActivity(intent);
             finish();

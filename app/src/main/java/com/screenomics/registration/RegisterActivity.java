@@ -12,6 +12,8 @@ import android.preference.PreferenceManager;
 
 import android.text.InputType;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -48,7 +50,6 @@ public class RegisterActivity extends AppCompatActivity {
     private String key;
     private String hash;
     private PreviewView previewView;
-    private Button errorButton;
     private Button continueButton;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
 
@@ -56,15 +57,10 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.register);
+        setSupportActionBar(findViewById(R.id.toolbar));
+        getSupportActionBar().setSubtitle("By the SUTD Screenlife Capture Team");
 
-        previewView = findViewById(R.id.activity_main_previewView);
-        errorButton = findViewById(R.id.errorButton);
-        errorButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showDialog();
-            }
-        });
+        previewView = findViewById(R.id.qrPreview);
         continueButton = findViewById(R.id.continueButton);
         continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -79,7 +75,35 @@ public class RegisterActivity extends AppCompatActivity {
         requestCamera();
     }
 
-    private void showDialog() {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.registration_options_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.manualInputOption) {
+            showManualInputDialog();
+        }
+
+        if (id == R.id.testModeOption) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putInt("state", 1);
+            editor.apply();
+
+            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+            RegisterActivity.this.startActivity(intent);
+            finish();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showManualInputDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Manual Input");
         builder.setMessage("Please scan the QR code using your phone's camera or third-party QR code scanner, copy the code, and paste the result below.");
@@ -226,6 +250,7 @@ public class RegisterActivity extends AppCompatActivity {
     private void commitSharedPreferences() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt("state", 1);
         editor.putString("key", key);
         editor.putString("hash", hash);
         editor.apply();
