@@ -131,9 +131,21 @@ public class CaptureService extends Service {
         captureInterval = new Runnable() {
             @Override
             public void run() {
+                System.out.println("CAPTURE:INTERVAL:1");
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
                 if (!capture) return;
-                if (buffer != null && !mKeyguardManager.isKeyguardLocked()) {
+                if (!mKeyguardManager.isKeyguardLocked()) {
+
+                    System.out.println("CAPTURE:INTERVAL:2");
+
+                    Image image = mImageReader.acquireLatestImage();
+                    Image.Plane[] planes = image.getPlanes();
+                    ByteBuffer buffer = planes[0].getBuffer();
+                    pixelStride = planes[0].getPixelStride();
+                    int rowStride = planes[0].getRowStride();
+                    rowPadding = rowStride - pixelStride * DISPLAY_WIDTH;
+                    image.close();
+
                     Bitmap bitmap = Bitmap.createBitmap(DISPLAY_WIDTH + rowPadding / pixelStride,
                             DISPLAY_HEIGHT, Bitmap.Config.ARGB_8888);
                     bitmap.copyPixelsFromBuffer(buffer);
@@ -222,9 +234,7 @@ public class CaptureService extends Service {
                     DISPLAY_HEIGHT, screenDensity,
                     DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mImageReader.getSurface(),
                     null, null);
-
-            mImageReader.setOnImageAvailableListener(new ImageAvailableListener(),
-                    mBackgroundHandler);
+            
         }
     }
 
@@ -299,34 +309,6 @@ public class CaptureService extends Service {
 
     public boolean isCapturing() {
         return capture;
-    }
-
-    private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-//            Log.d("onImageAvailable", "triggering onImageAvailable!");
-            mBackgroundHandler.post(new ImageProcessor(reader.acquireLatestImage()));
-        }
-    }
-
-    private class ImageProcessor implements Runnable {
-        private final Image mImage;
-
-        public ImageProcessor(Image image) {
-            mImage = image;
-        }
-
-        @Override
-        public void run() {
-            if (mImage != null) {
-                Image.Plane[] planes = mImage.getPlanes();
-                buffer = planes[0].getBuffer();
-                pixelStride = planes[0].getPixelStride();
-                int rowStride = planes[0].getRowStride();
-                rowPadding = rowStride - pixelStride * DISPLAY_WIDTH;
-                mImage.close();
-            }
-        }
     }
 
     // Called when Screen Cast is disabled
