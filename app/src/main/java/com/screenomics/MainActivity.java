@@ -1,6 +1,8 @@
 package com.screenomics;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,6 +15,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,6 +35,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.screenomics.registration.RegisterActivity;
 import com.screenomics.services.capture.CaptureActivity;
 import com.screenomics.services.capture.CaptureService;
+import com.screenomics.services.capture.ResumeReceiver;
 import com.screenomics.services.upload.SenderWorker;
 import com.screenomics.services.upload.UploadScheduler;
 import com.screenomics.services.upload.UploadService;
@@ -51,6 +55,10 @@ public class MainActivity extends AppCompatActivity {
     private SwitchCompat switchCapture;
     private Timer numImageRefreshTimer;
     private TextView captureState;
+    private Boolean recordingState;
+    private TextView numImagesText;
+    private Button uploadButton;
+    private Button pauseButton;
     private final ServiceConnection captureServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -61,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
                 captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
                 switchCapture.setEnabled(true);
                 switchCapture.setChecked(true);
+                pauseButton.setVisibility(View.VISIBLE);
             }
         }
 
@@ -68,9 +77,6 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName componentName) {
         }
     };
-    private Boolean recordingState;
-    private TextView numImagesText;
-    private Button uploadButton;
     private TextView numUploadText;
     private int infoOpenCount = 0;
     private UploadService uploadService;
@@ -144,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
         switchCapture = findViewById(R.id.switchCapture);
         numImagesText = findViewById(R.id.imageNumber);
         uploadButton = findViewById(R.id.uploadButton);
+        pauseButton = findViewById(R.id.pauseButton);
         numUploadText = findViewById(R.id.uploadNumber);
 
         switchCapture.setChecked(recordingState);
@@ -159,12 +166,14 @@ public class MainActivity extends AppCompatActivity {
                 startCapture();
                 captureState.setText(getResources().getString(R.string.capture_state_on));
                 captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
+                pauseButton.setVisibility(View.VISIBLE);
             } else {
                 editor.putBoolean("recordingState", false);
                 editor.commit();
                 stopCapture();
                 captureState.setText(getResources().getString(R.string.capture_state_off));
                 captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
+                pauseButton.setVisibility(View.INVISIBLE);
             }
         });
 
@@ -196,6 +205,24 @@ public class MainActivity extends AppCompatActivity {
                 UploadScheduler.startUpload(getApplicationContext(), false);
                 Toast.makeText(getApplicationContext(), "Uploading...", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        pauseButton.setOnClickListener(v -> {
+            editor.putBoolean("recordingState", false);
+            editor.commit();
+            stopCapture();
+            switchCapture.setChecked(false);
+            captureState.setText(getResources().getString(R.string.capture_state_off));
+            captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
+
+            PendingIntent mAlarmSender = PendingIntent.getBroadcast(this, 0, new Intent(this,
+                    ResumeReceiver.class), PendingIntent.FLAG_IMMUTABLE);
+
+            AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
+                    System.currentTimeMillis() + 60 * 1000, mAlarmSender);
+
+            pauseButton.setVisibility(View.INVISIBLE);
         });
 
 
@@ -285,6 +312,7 @@ public class MainActivity extends AppCompatActivity {
         captureState.setText(getResources().getString(R.string.capture_state_off));
         switchCapture.setEnabled(true);
         switchCapture.setChecked(false);
+        pauseButton.setVisibility(View.INVISIBLE);
         Intent screenCaptureIntent = new Intent(this, CaptureService.class);
         bindService(screenCaptureIntent, captureServiceConnection, 0);
 

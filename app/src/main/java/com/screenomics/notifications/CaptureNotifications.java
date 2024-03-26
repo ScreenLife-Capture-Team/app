@@ -55,6 +55,13 @@ public class CaptureNotifications {
         );
         notificationManager.createNotificationChannel(updateChannel);
 
+        NotificationChannel reminderChannel = new NotificationChannel(
+                "reminder-channel",
+                "Screenomics Reminder Channel",
+                NotificationManager.IMPORTANCE_DEFAULT
+        );
+        notificationManager.createNotificationChannel(reminderChannel);
+
     }
 
     @SuppressLint("ObsoleteSdkInt")
