@@ -9,11 +9,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,6 +33,7 @@ import androidx.work.WorkManager;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.screenomics.registration.RegisterActivity;
+import com.screenomics.services.capture.CaptureActivity;
 import com.screenomics.services.capture.CaptureService;
 import com.screenomics.services.upload.SenderWorker;
 import com.screenomics.services.upload.UploadScheduler;
@@ -53,10 +52,6 @@ import java.util.stream.Stream;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static final int PERMISSION_REQUEST_NOTIFICATIONS = 1;
-    private static final int REQUEST_CODE_MEDIA = 1000;
-    private static final int REQUEST_CODE_PHONE = 1001;
-    public static int mScreenDensity;
-    public MediaProjectionManager mProjectionManager;
     private SwitchCompat switchCapture;
     private Timer numImageRefreshTimer;
     private TextView captureState;
@@ -170,10 +165,6 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
 
-        DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        mScreenDensity = metrics.densityDpi;
-
         captureState = findViewById(R.id.captureState);
         switchCapture = findViewById(R.id.switchCapture);
         numImagesText = findViewById(R.id.imageNumber);
@@ -190,13 +181,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("MainActivity", "pressed switch button!");
                 editor.putBoolean("recordingState", true);
                 editor.apply();
-                startMediaProjectionRequest();
+                startCapture();
                 captureState.setText(getResources().getString(R.string.capture_state_on));
                 captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
             } else {
                 editor.putBoolean("recordingState", false);
                 editor.commit();
-                stopService();
+                stopCapture();
                 captureState.setText(getResources().getString(R.string.capture_state_off));
                 captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
             }
@@ -301,12 +292,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onPrepareOptionsMenu(menu);
     }
 
-    private void startMediaProjectionRequest() {
-        mProjectionManager =
-                (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-        startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE_MEDIA);
-    }
-
     private void requestNotifications() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
@@ -322,36 +307,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != REQUEST_CODE_MEDIA) {
-            Log.e(TAG, "Unknown request code: " + requestCode);
-            return;
-        }
-        if (resultCode != RESULT_OK) {
-            switchCapture.setChecked(false);
-            Toast.makeText(getApplicationContext(), "Permission denied", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        try {
-            Intent screenCaptureIntent = new Intent(this, CaptureService.class);
-            screenCaptureIntent.putExtra("resultCode", resultCode);
-            screenCaptureIntent.putExtra("intentData", data);
-            screenCaptureIntent.putExtra("screenDensity", mScreenDensity);
-            startForegroundService(screenCaptureIntent);
-            startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-            Toast.makeText(this, "ScreenLife Capture is running!", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void startCapture() {
+        Intent serviceIntent = new Intent(this, CaptureActivity.class);
+        startActivity(serviceIntent);
     }
 
-    private void createAlarm() {
-        final UploadScheduler alarm = new UploadScheduler(this);
-    }
-
-    private void stopService() {
+    private void stopCapture() {
         Intent serviceIntent = new Intent(this, CaptureService.class);
         stopService(serviceIntent);
     }
