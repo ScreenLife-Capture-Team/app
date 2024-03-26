@@ -9,8 +9,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-
 import android.text.InputType;
+import android.util.Size;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,11 +32,10 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.common.Barcode;
-import com.screenomics.Converter;
 import com.screenomics.MainActivity;
 import com.screenomics.R;
+import com.screenomics.util.Converter;
 
-import android.util.Size;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -105,7 +104,8 @@ public class RegisterActivity extends AppCompatActivity {
     private void showManualInputDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Manual Input");
-        builder.setMessage("Please scan the QR code using your phone's camera or third-party QR code scanner, copy the code, and paste the result below.");
+        builder.setMessage("Please scan the QR code using your phone's camera or third-party QR " +
+                "code scanner, copy the code, and paste the result below.");
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         builder.setView(input);
@@ -133,17 +133,27 @@ public class RegisterActivity extends AppCompatActivity {
         } else {
             // provision exclusively for API 33
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
-                    ActivityCompat.requestPermissions(RegisterActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_CAM_NOTIF);
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.CAMERA)) {
+                    ActivityCompat.requestPermissions(RegisterActivity.this,
+                            new String[]{Manifest.permission.CAMERA,
+                                    Manifest.permission.POST_NOTIFICATIONS},
+                            PERMISSION_REQUEST_CAM_NOTIF);
                 } else {
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_CAM_NOTIF);
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.CAMERA,
+                                    Manifest.permission.POST_NOTIFICATIONS},
+                            PERMISSION_REQUEST_CAM_NOTIF);
                 }
 
             } else {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
-                    ActivityCompat.requestPermissions(RegisterActivity.this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.CAMERA)) {
+                    ActivityCompat.requestPermissions(RegisterActivity.this,
+                            new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
                 } else {
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
                 }
             }
 
@@ -151,24 +161,30 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
 //    private void requestNotifications() {
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+//        PackageManager.PERMISSION_GRANTED) {
 //            startCamera();
 //        } else {
-//            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.POST_NOTIFICATIONS)) {
-//                ActivityCompat.requestPermissions(RegisterActivity.this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_NOTIFICATIONS);
+//            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission
+//            .POST_NOTIFICATIONS)) {
+//                ActivityCompat.requestPermissions(RegisterActivity.this, new String[]{Manifest
+//                .permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_NOTIFICATIONS);
 //            } else {
-//                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_NOTIFICATIONS);
+//                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission
+//                .POST_NOTIFICATIONS}, PERMISSION_REQUEST_NOTIFICATIONS);
 //            }
 //        }
 //    }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         if (requestCode == PERMISSION_REQUEST_CAM_NOTIF) {
             if (grantResults.length == 2 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                 startCamera();
             } else {
-                Toast.makeText(this, "Please allow both camera and notifications permissions", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please allow both camera and notifications permissions",
+                        Toast.LENGTH_SHORT).show();
             }
         } else {
             // below API 33
@@ -186,7 +202,8 @@ public class RegisterActivity extends AppCompatActivity {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
                 bindCameraPreview(cameraProvider);
             } catch (ExecutionException | InterruptedException e) {
-                Toast.makeText(this, "Error starting camera " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error starting camera " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
             }
         }, ContextCompat.getMainExecutor(this));
     }
@@ -210,8 +227,10 @@ public class RegisterActivity extends AppCompatActivity {
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
 
-//        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer(new QRCodeFoundListener() {
-        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzerNew(new BarcodesListener() {
+//        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer
+//        (new QRCodeFoundListener() {
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this),
+                new QRCodeImageAnalyzerNew(new BarcodesListener() {
 //            @Override
 //            public void onQRCodeFound(String _qrCode) {
 //                setQR(_qrCode);
@@ -225,10 +244,12 @@ public class RegisterActivity extends AppCompatActivity {
 
 
             @Override
-            public void qrCodeNotFound() { }
+            public void qrCodeNotFound() {
+            }
         }));
 
-        cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
+        cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis,
+                preview);
     }
 
     private void setQR(String _qrCode) {
@@ -256,7 +277,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
 
-    private byte[] getSHA(String input)  throws NoSuchAlgorithmException {
+    private byte[] getSHA(String input) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(Converter.hexStringToByteArray(input));
         return md.digest();
@@ -272,10 +293,11 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed () { }
+    public void onBackPressed() {
+    }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)  {
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
 
         if (keyCode == KeyEvent.KEYCODE_BACK)  //Override Keyback to do nothing in this case.
         {

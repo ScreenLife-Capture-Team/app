@@ -1,4 +1,4 @@
-package com.screenomics;
+package com.screenomics.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -20,7 +20,7 @@ public class Logger {
             int index = existing.indexOf("\n");
             existing = existing.substring(index + 1);
         }
-        editor.putString("logs", existing + "\ni" + sdf.format(new Date())+ msg);
+        editor.putString("logs", existing + "\ni" + sdf.format(new Date()) + msg);
         editor.apply();
     }
 
@@ -32,7 +32,7 @@ public class Logger {
             int index = existing.indexOf("\n");
             existing = existing.substring(index + 1);
         }
-        editor.putString("logs", existing + "\ne" + sdf.format(new Date())+ msg);
+        editor.putString("logs", existing + "\ne" + sdf.format(new Date()) + msg);
         editor.apply();
     }
 

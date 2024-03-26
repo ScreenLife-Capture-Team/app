@@ -23,9 +23,9 @@ import android.os.Process;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.screenomics.Converter;
 import com.screenomics.R;
 import com.screenomics.notifications.CaptureNotifications;
+import com.screenomics.util.Converter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -234,7 +234,7 @@ public class CaptureService extends Service {
                     DISPLAY_HEIGHT, screenDensity,
                     DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mImageReader.getSurface(),
                     null, null);
-            
+
         }
     }
 

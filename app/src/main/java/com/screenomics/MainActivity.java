@@ -15,7 +15,6 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
-
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
@@ -40,6 +39,8 @@ import com.screenomics.services.capture.CaptureService;
 import com.screenomics.services.upload.SenderWorker;
 import com.screenomics.services.upload.UploadScheduler;
 import com.screenomics.services.upload.UploadService;
+import com.screenomics.util.InternetConnection;
+import com.screenomics.util.Logger;
 
 import java.io.File;
 import java.util.List;
@@ -51,20 +52,70 @@ import java.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-    public MediaProjectionManager mProjectionManager;
-    public static int mScreenDensity;
     private static final int PERMISSION_REQUEST_NOTIFICATIONS = 1;
     private static final int REQUEST_CODE_MEDIA = 1000;
     private static final int REQUEST_CODE_PHONE = 1001;
+    public static int mScreenDensity;
+    public MediaProjectionManager mProjectionManager;
     private SwitchCompat switchCapture;
     private Timer numImageRefreshTimer;
     private TextView captureState;
+    private final ServiceConnection captureServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            CaptureService.LocalBinder localBinder = (CaptureService.LocalBinder) iBinder;
+            CaptureService captureService = localBinder.getService();
+            if (captureService.isCapturing()) {
+                captureState.setText(getResources().getString(R.string.capture_state_on));
+                captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
+                switchCapture.setEnabled(true);
+                switchCapture.setChecked(true);
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+        }
+    };
     private Boolean recordingState;
     private TextView numImagesText;
     private Button uploadButton;
     private TextView numUploadText;
     private int infoOpenCount = 0;
     private UploadService uploadService;
+    private final ServiceConnection uploadServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            UploadService.LocalBinder localBinder = (UploadService.LocalBinder) iBinder;
+            uploadService = localBinder.getService();
+            if (uploadService.status == UploadService.Status.SENDING) {
+                numUploadText.setText("Uploading: " + uploadService.numUploaded + "/" + uploadService.numTotal);
+            } else {
+                numUploadText.setText(uploadService.status.toString());
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+        }
+    };
+
+    // for debugging purposes
+    public static String intentToString(Intent intent) {
+        if (intent == null)
+            return "";
+
+        StringBuilder stringBuilder = new StringBuilder("action: ")
+                .append(intent.getAction())
+                .append(" data: ")
+                .append(intent.getDataString())
+                .append(" extras: ");
+        for (String key : intent.getExtras().keySet())
+            stringBuilder.append(key).append("=").append(intent.getExtras().get(key)).append(" ");
+
+        return stringBuilder.toString();
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,9 +124,10 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(findViewById(R.id.mainToolbar));
 
         WorkManager.getInstance(this).cancelAllWork();
-        ListenableFuture<List<WorkInfo>> send_periodic1 = WorkManager.getInstance(this).getWorkInfosByTag("send_periodic");
+        ListenableFuture<List<WorkInfo>> send_periodic1 =
+                WorkManager.getInstance(this).getWorkInfosByTag("send_periodic");
         try {
-            System.out.println(new StringBuilder().append("SENDPERIODIC: ").append(send_periodic1.get()).toString());
+            System.out.println("SENDPERIODIC: " + send_periodic1.get());
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -94,11 +146,13 @@ public class MainActivity extends AppCompatActivity {
                 .setInitialDelay(1, TimeUnit.HOURS)
                 .build();
         WorkManager.getInstance(this)
-                .enqueueUniquePeriodicWork("send_periodic", ExistingPeriodicWorkPolicy.REPLACE, workRequest);
+                .enqueueUniquePeriodicWork("send_periodic", ExistingPeriodicWorkPolicy.REPLACE,
+                        workRequest);
 
-        ListenableFuture<List<WorkInfo>> send_periodic = WorkManager.getInstance(this).getWorkInfosByTag("send_periodic");
+        ListenableFuture<List<WorkInfo>> send_periodic =
+                WorkManager.getInstance(this).getWorkInfosByTag("send_periodic");
         try {
-            System.out.println(new StringBuilder().append("SENDPERIODIC: ").append(send_periodic.get()).toString());
+            System.out.println("SENDPERIODIC: " + send_periodic.get());
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -159,7 +213,8 @@ public class MainActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
                                 UploadScheduler.startUpload(getApplicationContext(), true);
-                                Toast.makeText(getApplicationContext(), "Uploading...", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "Uploading...",
+                                        Toast.LENGTH_SHORT).show();
                             }
                         });
                 alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel",
@@ -178,8 +233,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        File f_image = new File(getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + File.separator + "images");
-        File f_encrypt = new File(getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + File.separator + "encrypt");
+        File f_image =
+                new File(getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + File.separator + "images");
+        File f_encrypt =
+                new File(getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + File.separator + "encrypt");
         if (!f_image.exists()) f_image.mkdir();
         if (!f_encrypt.exists()) f_encrypt.mkdir();
         Log.i(TAG, "f_image: " + f_image.getAbsolutePath());
@@ -239,26 +296,28 @@ public class MainActivity extends AppCompatActivity {
                 , Context.MODE_PRIVATE);
         boolean isDev = prefs.getBoolean("isDev", false);
 
-        if (isDev) {
-            menu.findItem(R.id.devOption).setVisible(true);
-        } else {
-            menu.findItem(R.id.devOption).setVisible(false);
-        }
+        menu.findItem(R.id.devOption).setVisible(isDev);
 
         return super.onPrepareOptionsMenu(menu);
     }
 
     private void startMediaProjectionRequest() {
-        mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        mProjectionManager =
+                (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE_MEDIA);
     }
 
     private void requestNotifications() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.POST_NOTIFICATIONS)) {
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_NOTIFICATIONS);
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.POST_NOTIFICATIONS)) {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        PERMISSION_REQUEST_NOTIFICATIONS);
             } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_NOTIFICATIONS);
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        PERMISSION_REQUEST_NOTIFICATIONS);
             }
         }
     }
@@ -288,23 +347,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // for debugging purposes
-    public static String intentToString(Intent intent) {
-        if (intent == null)
-            return "";
-
-        StringBuilder stringBuilder = new StringBuilder("action: ")
-                .append(intent.getAction())
-                .append(" data: ")
-                .append(intent.getDataString())
-                .append(" extras: ");
-        for (String key : intent.getExtras().keySet())
-            stringBuilder.append(key).append("=").append(intent.getExtras().get(key)).append(" ");
-
-        return stringBuilder.toString();
-
-    }
-
     private void createAlarm() {
         final UploadScheduler alarm = new UploadScheduler(this);
     }
@@ -313,41 +355,6 @@ public class MainActivity extends AppCompatActivity {
         Intent serviceIntent = new Intent(this, CaptureService.class);
         stopService(serviceIntent);
     }
-
-    private final ServiceConnection captureServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            CaptureService.LocalBinder localBinder = (CaptureService.LocalBinder) iBinder;
-            CaptureService captureService = localBinder.getService();
-            if (captureService.isCapturing()) {
-                captureState.setText(getResources().getString(R.string.capture_state_on));
-                captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
-                switchCapture.setEnabled(true);
-                switchCapture.setChecked(true);
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-        }
-    };
-
-    private final ServiceConnection uploadServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            UploadService.LocalBinder localBinder = (UploadService.LocalBinder) iBinder;
-            uploadService = localBinder.getService();
-            if (uploadService.status == UploadService.Status.SENDING) {
-                numUploadText.setText("Uploading: " + uploadService.numUploaded + "/" + uploadService.numTotal);
-            } else {
-                numUploadText.setText(uploadService.status.toString());
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-        }
-    };
 
     @Override
     protected void onResume() {
@@ -370,12 +377,14 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        File outputDir = new File(getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + File.separator + "encrypt");
+                        File outputDir =
+                                new File(getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + File.separator + "encrypt");
                         File[] files = outputDir.listFiles();
                         if (files == null) return;
                         int numImages = files.length;
                         float bytesTotal = Stream.of(files).mapToLong(File::length).sum();
-                        numImagesText.setText(String.format("Number of images: %d (%sMB)", numImages, String.format("%.2f", bytesTotal / 1024 / 1024)));
+                        numImagesText.setText(String.format("Number of images: %d (%sMB)",
+                                numImages, String.format("%.2f", bytesTotal / 1024 / 1024)));
                         Log.i(TAG, "Image Number:" + numImages);
                         if (uploadService != null) {
                             if (uploadService.status == UploadService.Status.SENDING) {
