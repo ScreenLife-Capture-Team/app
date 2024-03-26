@@ -63,24 +63,7 @@ public class CaptureService extends Service {
     private Handler mHandler = new Handler();
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
-
     private CaptureNotifications notifications;
-
-    public static String intentToString(Intent intent) {
-        if (intent == null)
-            return "";
-
-        StringBuilder stringBuilder = new StringBuilder("action: ")
-                .append(intent.getAction())
-                .append(" data: ")
-                .append(intent.getDataString())
-                .append(" extras: ");
-        for (String key : intent.getExtras().keySet())
-            stringBuilder.append(key).append("=").append(intent.getExtras().get(key)).append(" ");
-
-        return stringBuilder.toString();
-
-    }
 
     private void encryptImage(Bitmap bitmap, String descriptor) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);

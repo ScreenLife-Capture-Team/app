@@ -1,6 +1,5 @@
 package com.screenomics;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -8,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -22,7 +20,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
@@ -45,7 +42,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -95,23 +91,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    // for debugging purposes
-    public static String intentToString(Intent intent) {
-        if (intent == null)
-            return "";
-
-        StringBuilder stringBuilder = new StringBuilder("action: ")
-                .append(intent.getAction())
-                .append(" data: ")
-                .append(intent.getDataString())
-                .append(" extras: ");
-        for (String key : intent.getExtras().keySet())
-            stringBuilder.append(key).append("=").append(intent.getExtras().get(key)).append(" ");
-
-        return stringBuilder.toString();
-
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,9 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 WorkManager.getInstance(this).getWorkInfosByTag("send_periodic");
         try {
             System.out.println("SENDPERIODIC: " + send_periodic1.get());
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -148,9 +125,7 @@ public class MainActivity extends AppCompatActivity {
                 WorkManager.getInstance(this).getWorkInfosByTag("send_periodic");
         try {
             System.out.println("SENDPERIODIC: " + send_periodic.get());
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -290,21 +265,6 @@ public class MainActivity extends AppCompatActivity {
         menu.findItem(R.id.devOption).setVisible(isDev);
 
         return super.onPrepareOptionsMenu(menu);
-    }
-
-    private void requestNotifications() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.POST_NOTIFICATIONS)) {
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                        PERMISSION_REQUEST_NOTIFICATIONS);
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                        PERMISSION_REQUEST_NOTIFICATIONS);
-            }
-        }
     }
 
     private void startCapture() {
