@@ -32,6 +32,7 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.screenomics.debug.DebugActivity;
 import com.screenomics.registration.RegisterActivity;
 import com.screenomics.services.capture.CaptureActivity;
 import com.screenomics.services.capture.CaptureService;
@@ -272,6 +273,11 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
             alertDialog.show();
+        }
+
+        if (id == R.id.debugOption) {
+            Intent intent = new Intent(MainActivity.this, DebugActivity.class);
+            MainActivity.this.startActivity(intent);
         }
 
         if (id == R.id.devOption) {
