@@ -19,7 +19,7 @@ import java.util.Date;
 
 
 public class CaptureNotifications {
-
+    public static final int CAPTURE_NOTIFICATION_ID = 101;
     private static final String CHANNEL_ID = "screenomics_id";
     private static final String CAPTURE_CHANNEL_ID = "capture-channel";
     @SuppressLint("SimpleDateFormat")
@@ -82,11 +82,11 @@ public class CaptureNotifications {
         notificationManager.notify(2, notification);
     }
 
-    @SuppressLint("ObsoleteSdkInt")
-    public void notifyCaptureState(Service service, String title, String subtitle) {
+    private Notification getCaptureStatusNotification(Service service, String title,
+                                                      String subtitle) {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
             // NotificationManager not supported
-            return;
+            throw new Error("Invalid SDK version");
         }
         createChannels();
 
@@ -110,7 +110,28 @@ public class CaptureNotifications {
                 .setOngoing(true)
                 .build();
 
-        service.startForeground(1, notification);
+        return notification;
     }
 
+    @SuppressLint("ObsoleteSdkInt")
+    public void notifyCaptureStopped(Service service) {
+        Notification notification = getCaptureStatusNotification(
+                service,
+                "ScreenLife Capture is NOT Running!",
+                "Please restart the application!"
+        );
+        service.startForeground(CAPTURE_NOTIFICATION_ID, notification);
+    }
+
+    @SuppressLint("ObsoleteSdkInt")
+    public Notification getCaptureStartedNotification(Service foregroundService) {
+        Notification notification = getCaptureStatusNotification(
+                foregroundService,
+                "ScreenLife Capture is currently enabled",
+                "If this notification " +
+                        "disappears, please re-enable it from the application."
+        );
+
+        return notification;
+    }
 }

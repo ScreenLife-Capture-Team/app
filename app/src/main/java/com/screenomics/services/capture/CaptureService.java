@@ -2,10 +2,12 @@ package com.screenomics.services.capture;
 
 import android.annotation.SuppressLint;
 import android.app.KeyguardManager;
+import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
@@ -16,12 +18,15 @@ import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Process;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import androidx.core.app.ServiceCompat;
 
 import com.screenomics.R;
 import com.screenomics.notifications.CaptureNotifications;
@@ -76,19 +81,16 @@ public class CaptureService extends Service {
         String screenshot = "/" + hash + "_" + sdf.format(date) + "_" + descriptor + ".png";
 
         try {
-            if (keyRaw != "") {
-
-                fos = new FileOutputStream(dir + "/images" + screenshot);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fos);
-                try {
-                    Encryptor.encryptFile(key, screenshot, dir + "/images" + screenshot, dir +
-                            "/encrypt" + screenshot);
-                    Log.i(TAG, "Encryption done");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                File f = new File(dir + "/images" + screenshot);
+            fos = new FileOutputStream(dir + "/images" + screenshot);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fos);
+            try {
+                Encryptor.encryptFile(key, screenshot, dir + "/images" + screenshot, dir +
+                        "/encrypt" + screenshot);
+                Log.i(TAG, "Encryption done");
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            File f = new File(dir + "/images" + screenshot);
 //            if (f.delete()) Log.e(TAG, "file deleted: " + dir + "/images" + screenshot);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -125,20 +127,24 @@ public class CaptureService extends Service {
                     System.out.println("CAPTURE:INTERVAL:2");
 
                     Image image = mImageReader.acquireLatestImage();
-                    Image.Plane[] planes = image.getPlanes();
-                    ByteBuffer buffer = planes[0].getBuffer();
-                    pixelStride = planes[0].getPixelStride();
-                    int rowStride = planes[0].getRowStride();
-                    rowPadding = rowStride - pixelStride * DISPLAY_WIDTH;
-                    image.close();
+                    if (image != null) {
+                        Image.Plane[] planes = image.getPlanes();
+                        ByteBuffer buffer = planes[0].getBuffer();
+                        pixelStride = planes[0].getPixelStride();
+                        int rowStride = planes[0].getRowStride();
+                        rowPadding = rowStride - pixelStride * DISPLAY_WIDTH;
+                        image.close();
 
-                    Bitmap bitmap = Bitmap.createBitmap(DISPLAY_WIDTH + rowPadding / pixelStride,
-                            DISPLAY_HEIGHT, Bitmap.Config.ARGB_8888);
-                    bitmap.copyPixelsFromBuffer(buffer);
-                    encryptImage(bitmap, "placeholder");
-                    buffer.rewind();
+                        Bitmap bitmap =
+                                Bitmap.createBitmap(DISPLAY_WIDTH + rowPadding / pixelStride,
+                                        DISPLAY_HEIGHT, Bitmap.Config.ARGB_8888);
+                        bitmap.copyPixelsFromBuffer(buffer);
+                        encryptImage(bitmap, "placeholder");
+                        buffer.rewind();
 
-                    // notifications.notifyImageCaptured();
+                        // notifications.notifyImageCaptured();
+
+                    }
                 }
                 mHandler.postDelayed(captureInterval, 5000);
             }
@@ -182,20 +188,33 @@ public class CaptureService extends Service {
             mHandler = new Handler();
         }
 
-        notifications.notifyCaptureState(
-                this,
-                "ScreenLife Capture is currently enabled",
-                "If this notification " +
-                        "disappears, please re-enable it from the application."
-        );
+        Notification notification = notifications.getCaptureStartedNotification(this);
 
-        mMediaProjection = mProjectionManager.getMediaProjection(resultCode, intent);
-        mMediaProjectionCallback = new MediaProjectionCallback();
-        mMediaProjection.registerCallback(mMediaProjectionCallback, null);
+        // Start self as foreground service with mediaProjection permissions (Android 14+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ServiceCompat.startForeground(this, CaptureNotifications.CAPTURE_NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
+        } else {
+            ServiceCompat.startForeground(this, CaptureNotifications.CAPTURE_NOTIFICATION_ID,
+                    notification, 0);
+        }
 
-        createVirtualDisplay();
+        // The following requires the foreground service to actually be started
+        Handler handler = new Handler();
+        handler.postDelayed(() -> {
+            System.out.println("Obtaining media projection..");
+            mMediaProjection = mProjectionManager.getMediaProjection(resultCode, intent);
+            mMediaProjectionCallback = new MediaProjectionCallback();
+            mMediaProjection.registerCallback(mMediaProjectionCallback, null);
 
-        startCapturing();
+            System.out.println("Creating virtual display..");
+            createVirtualDisplay();
+
+            System.out.println("Staring capture..");
+            startCapturing();
+        }, 2000);
+
         return START_REDELIVER_INTENT;
     }
 
@@ -279,12 +298,7 @@ public class CaptureService extends Service {
         }
         Log.i(TAG, "MediaProjection stopped");
 
-        notifications.notifyCaptureState(
-                this,
-                "ScreenLife Capture is NOT Running!",
-                "Please restart the application!"
-        );
-
+        notifications.notifyCaptureStopped(this);
         capture = false;
     }
 
