@@ -76,17 +76,20 @@ public class CaptureService extends Service {
         String screenshot = "/" + hash + "_" + sdf.format(date) + "_" + descriptor + ".png";
 
         try {
-            fos = new FileOutputStream(dir + "/images" + screenshot);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fos);
-            try {
-                Encryptor.encryptFile(key, screenshot, dir + "/images" + screenshot, dir +
-                        "/encrypt" + screenshot);
-                Log.i(TAG, "Encryption done");
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (keyRaw != "") {
+
+                fos = new FileOutputStream(dir + "/images" + screenshot);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fos);
+                try {
+                    Encryptor.encryptFile(key, screenshot, dir + "/images" + screenshot, dir +
+                            "/encrypt" + screenshot);
+                    Log.i(TAG, "Encryption done");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                File f = new File(dir + "/images" + screenshot);
             }
-            File f = new File(dir + "/images" + screenshot);
-            if (f.delete()) Log.e(TAG, "file deleted: " + dir + "/images" + screenshot);
+//            if (f.delete()) Log.e(TAG, "file deleted: " + dir + "/images" + screenshot);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } finally {
@@ -135,7 +138,7 @@ public class CaptureService extends Service {
                     encryptImage(bitmap, "placeholder");
                     buffer.rewind();
 
-                    notifications.notifyImageCaptured();
+                    // notifications.notifyImageCaptured();
                 }
                 mHandler.postDelayed(captureInterval, 5000);
             }

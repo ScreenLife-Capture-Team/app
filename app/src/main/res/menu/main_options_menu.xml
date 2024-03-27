@@ -9,6 +9,9 @@
         android:id="@+id/logsOption"
         android:title="Logs" />
     <item
+        android:id="@+id/debugOption"
+        android:title="Debug" />
+    <item
         android:id="@+id/devOption"
         android:title="Dev Tools"
         android:visible="false" />
