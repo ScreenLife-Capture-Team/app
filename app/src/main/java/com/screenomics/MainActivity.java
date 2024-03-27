@@ -224,6 +224,7 @@ public class MainActivity extends AppCompatActivity {
                     System.currentTimeMillis() + 15 * 1000, mAlarmSender);
 
             pauseButton.setVisibility(View.INVISIBLE);
+            Toast.makeText(this, "Capture has been paused", Toast.LENGTH_SHORT).show();
         });
 
 
