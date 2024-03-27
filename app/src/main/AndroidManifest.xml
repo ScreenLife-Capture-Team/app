@@ -69,6 +69,11 @@
             android:theme="@style/Theme.AppCompat.Dialog" />
 
         <receiver
+            android:name=".services.capture.ResumeReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":remote" />
+        <receiver
             android:name=".services.upload.UploadScheduler"
             android:exported="true">
             <intent-filter>
@@ -76,10 +81,14 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".services.capture.ResumeReceiver"
+            android:name=".services.capture.RebootReceiver"
             android:enabled="true"
             android:exported="true"
-            android:process=":remote" />
+            android:process=":remote">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
