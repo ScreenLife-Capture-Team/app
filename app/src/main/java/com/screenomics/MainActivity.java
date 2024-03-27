@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
 
             AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
-                    System.currentTimeMillis() + 60 * 1000, mAlarmSender);
+                    System.currentTimeMillis() + 15 * 1000, mAlarmSender);
 
             pauseButton.setVisibility(View.INVISIBLE);
         });
