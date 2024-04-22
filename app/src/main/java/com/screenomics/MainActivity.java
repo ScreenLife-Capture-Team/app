@@ -1,8 +1,6 @@
 package com.screenomics;
 
-import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,7 +34,6 @@ import com.screenomics.debug.DebugActivity;
 import com.screenomics.registration.RegisterActivity;
 import com.screenomics.services.capture.CaptureActivity;
 import com.screenomics.services.capture.CaptureService;
-import com.screenomics.services.capture.ResumeReceiver;
 import com.screenomics.services.upload.SenderWorker;
 import com.screenomics.services.upload.UploadScheduler;
 import com.screenomics.services.upload.UploadService;
@@ -169,12 +166,14 @@ public class MainActivity extends AppCompatActivity {
                 captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
                 pauseButton.setVisibility(View.VISIBLE);
             } else {
-                editor.putBoolean("recordingState", false);
-                editor.commit();
-                stopCapture();
-                captureState.setText(getResources().getString(R.string.capture_state_off));
-                captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
-                pauseButton.setVisibility(View.INVISIBLE);
+//                editor.putBoolean("recordingState", false);
+//                editor.commit();
+//                stopCapture();
+//                captureState.setText(getResources().getString(R.string.capture_state_off));
+//                captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
+//                pauseButton.setVisibility(View.INVISIBLE);
+                Intent intent = new Intent(MainActivity.this, StopCaptureActivity.class);
+                MainActivity.this.startActivity(intent);
             }
         });
 
@@ -209,22 +208,25 @@ public class MainActivity extends AppCompatActivity {
         });
 
         pauseButton.setOnClickListener(v -> {
-            editor.putBoolean("recordingState", false);
-            editor.commit();
-            stopCapture();
-            switchCapture.setChecked(false);
-            captureState.setText(getResources().getString(R.string.capture_state_off));
-            captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
+//            editor.putBoolean("recordingState", false);
+//            editor.commit();
+//            stopCapture();
+//            switchCapture.setChecked(false);
+//            captureState.setText(getResources().getString(R.string.capture_state_off));
+//            captureState.setTextColor(getResources().getColor(R.color.light_sea_green));
 
-            PendingIntent mAlarmSender = PendingIntent.getBroadcast(this, 0, new Intent(this,
-                    ResumeReceiver.class), PendingIntent.FLAG_IMMUTABLE);
+//            PendingIntent mAlarmSender = PendingIntent.getBroadcast(this, 0, new Intent(this,
+//                    ResumeReceiver.class), PendingIntent.FLAG_IMMUTABLE);
+//
+//            AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context
+//            .ALARM_SERVICE);
+//            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
+//                    System.currentTimeMillis() + 15 * 1000, mAlarmSender);
 
-            AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
-                    System.currentTimeMillis() + 15 * 1000, mAlarmSender);
+//            pauseButton.setVisibility(View.INVISIBLE);
 
-            pauseButton.setVisibility(View.INVISIBLE);
-            Toast.makeText(this, "Capture has been paused", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(MainActivity.this, PauseCaptureActivity.class);
+            MainActivity.this.startActivity(intent);
         });
 
 
@@ -306,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(serviceIntent);
     }
 
-    private void stopCapture() {
+    protected void stopCapture() {
         Intent serviceIntent = new Intent(this, CaptureService.class);
         stopService(serviceIntent);
     }

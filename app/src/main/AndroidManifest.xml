@@ -66,6 +66,12 @@
             android:name=".services.capture.CaptureActivity"
             android:parentActivityName=".MainActivity"
             android:theme="@style/Theme.AppCompat.Dialog" />
+        <activity
+            android:name=".StopCaptureActivity"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".PauseCaptureActivity"
+            android:parentActivityName=".MainActivity" />
 
         <receiver
             android:name=".services.capture.ResumeReceiver"
