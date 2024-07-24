@@ -225,8 +225,12 @@ public class MainActivity extends AppCompatActivity {
 
 //            pauseButton.setVisibility(View.INVISIBLE);
 
-            Intent intent = new Intent(MainActivity.this, PauseCaptureActivity.class);
-            MainActivity.this.startActivity(intent);
+            AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
+                    System.currentTimeMillis() + 15 * 1000, mAlarmSender);
+
+            pauseButton.setVisibility(View.INVISIBLE);
+            Toast.makeText(this, "Capture has been paused", Toast.LENGTH_SHORT).show();
         });
 
 
