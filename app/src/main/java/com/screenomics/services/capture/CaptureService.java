@@ -145,9 +145,10 @@ public class CaptureService extends Service {
                         encryptImage(bitmap, "placeholder");
                         buffer.rewind();
 
-                    // notifications.notifyImageCaptured();
+                        // notifications.notifyImageCaptured();
+                    }
+                    mHandler.postDelayed(captureInterval, 5000);
                 }
-                mHandler.postDelayed(captureInterval, 5000);
             }
         };
 
@@ -171,8 +172,6 @@ public class CaptureService extends Service {
                 encryptImage(bitmap, "pause");
             }
         };
-
-
     }
 
     @Override
