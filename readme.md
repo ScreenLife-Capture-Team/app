@@ -1,3 +1,14 @@
+> [!IMPORTANT]
+> ## ⚠️ REPOSITORY DEPRECATED ⚠️
+> 
+> **Note:** This repository is no longer actively maintained. All development has moved to the following new repositories:
+> 
+> - [ScreenLife Capture Collection](https://github.com/ScreenLife-Capture-Team/screenlife-capture-collection) - Mobile app for data collection + Cloud Infrastructure for secure data storage and processing
+> - [Tagging Platform](https://github.com/ScreenLife-Capture-Team/tagging-platform) - Web platform for data annotation
+> 
+> Please use these new repositories for the latest code and features.
+
+
 # ScreenLife Capture Android App
 
 ### Changelog
